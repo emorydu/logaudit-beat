@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package trainer;
+
+option go_package = "github.com/emorydu/dbaudit-beat/internal/auditbeat";
+
+import "google/protobuf/empty.proto";
+
+
+service AuditBeatService {
+  rpc FetchBeatRule(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+  rpc Download(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}
+
