@@ -29,3 +29,5 @@ terraform/cloud-builders-community
 
 .go/
 .go-cache/
+
+boilerplate.txt
