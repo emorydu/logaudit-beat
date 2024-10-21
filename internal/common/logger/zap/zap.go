@@ -5,9 +5,10 @@
 package zap
 
 import (
+	"time"
+
 	"github.com/emorydu/dbaudit/internal/common/logger/config"
 	"github.com/emorydu/dbaudit/internal/common/logger/field"
-	"time"
 
 	"github.com/uptrace/opentelemetry-go-extra/otelzap"
 	"go.uber.org/zap"
@@ -72,15 +73,15 @@ func (log *Logger) setLogLevel(logLevel int) zap.AtomicLevel {
 	atom := zap.NewAtomicLevel()
 
 	switch logLevel {
-	case config.FATAL_LEVEL:
+	case config.FatalLevel:
 		atom.SetLevel(zapcore.FatalLevel)
-	case config.ERROR_LEVEL:
+	case config.ErrorLevel:
 		atom.SetLevel(zapcore.ErrorLevel)
-	case config.WARN_LEVEL:
+	case config.WarnLevel:
 		atom.SetLevel(zapcore.WarnLevel)
-	case config.INFO_LEVEL:
+	case config.InfoLevel:
 		atom.SetLevel(zapcore.InfoLevel)
-	case config.DEBUG_LEVEL:
+	case config.DebugLevel:
 		atom.SetLevel(zapcore.DebugLevel)
 	default:
 		atom.SetLevel(zapcore.InfoLevel)

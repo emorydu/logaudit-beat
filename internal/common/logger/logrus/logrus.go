@@ -20,7 +20,6 @@ func New(cfg config.Configuration) (*Logger, error) {
 		log: logrus.New(),
 	}
 
-	// Logging =================================================================
 	// Setup the logger backend using sirupsen/logrus and configure
 	// it to use a custom JSONFormatter. See the logrus docs for how to
 	// configure the backend at github.com/sirupsen/logrus
@@ -74,15 +73,15 @@ func (log *Logger) converter(fields ...field.Fields) *logrus.Entry {
 
 func (log *Logger) setLogLevel(logLevel int) {
 	switch logLevel {
-	case config.FATAL_LEVEL:
+	case config.FatalLevel:
 		log.log.SetLevel(logrus.FatalLevel)
-	case config.ERROR_LEVEL:
+	case config.ErrorLevel:
 		log.log.SetLevel(logrus.ErrorLevel)
-	case config.WARN_LEVEL:
+	case config.WarnLevel:
 		log.log.SetLevel(logrus.WarnLevel)
-	case config.INFO_LEVEL:
+	case config.InfoLevel:
 		log.log.SetLevel(logrus.InfoLevel)
-	case config.DEBUG_LEVEL:
+	case config.DebugLevel:
 		log.log.SetLevel(logrus.DebugLevel)
 	default:
 		log.log.SetLevel(logrus.InfoLevel)

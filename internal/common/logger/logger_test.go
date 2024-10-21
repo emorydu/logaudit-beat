@@ -8,12 +8,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"github.com/emorydu/dbaudit/internal/common/logger/config"
-	"github.com/emorydu/dbaudit/internal/common/logger/field"
 	"os"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/emorydu/dbaudit/internal/common/logger/config"
+	"github.com/emorydu/dbaudit/internal/common/logger/field"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,7 +32,7 @@ func TestOutputInfoWithContextZap(t *testing.T) {
 	var b bytes.Buffer
 
 	conf := config.Configuration{
-		Level:      config.INFO_LEVEL,
+		Level:      config.InfoLevel,
 		Writer:     &b,
 		TimeFormat: time.RFC822,
 	}
@@ -61,7 +62,7 @@ func BenchmarkOutputZap(bench *testing.B) {
 	var b bytes.Buffer
 
 	conf := config.Configuration{
-		Level:      config.INFO_LEVEL,
+		Level:      config.InfoLevel,
 		Writer:     &b,
 		TimeFormat: time.RFC822,
 	}
@@ -77,7 +78,7 @@ func TestOutputInfoWithContextLogrus(t *testing.T) {
 	var b bytes.Buffer
 
 	conf := config.Configuration{
-		Level:      config.INFO_LEVEL,
+		Level:      config.InfoLevel,
 		Writer:     &b,
 		TimeFormat: time.RFC822,
 	}
@@ -103,7 +104,7 @@ func BenchmarkOutputLogrus(bench *testing.B) {
 	var b bytes.Buffer
 
 	conf := config.Configuration{
-		Level:      config.INFO_LEVEL,
+		Level:      config.InfoLevel,
 		Writer:     &b,
 		TimeFormat: time.RFC822,
 	}
@@ -119,7 +120,7 @@ func TestFieldsZap(t *testing.T) {
 	var b bytes.Buffer
 
 	conf := config.Configuration{
-		Level:      config.INFO_LEVEL,
+		Level:      config.InfoLevel,
 		Writer:     &b,
 		TimeFormat: time.RFC822,
 	}
@@ -154,7 +155,7 @@ func TestFieldsLogrus(t *testing.T) {
 	var b bytes.Buffer
 
 	conf := config.Configuration{
-		Level:      config.INFO_LEVEL,
+		Level:      config.InfoLevel,
 		Writer:     &b,
 		TimeFormat: time.RFC822,
 	}
@@ -187,7 +188,7 @@ func TestSetLevel(t *testing.T) {
 		var b bytes.Buffer
 
 		conf := config.Configuration{
-			Level:      config.FATAL_LEVEL,
+			Level:      config.FatalLevel,
 			Writer:     &b,
 			TimeFormat: time.RFC822,
 		}

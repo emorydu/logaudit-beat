@@ -26,6 +26,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	AuditBeatService_FetchBeatRule_FullMethodName = "/auditbeat.AuditBeatService/FetchBeatRule"
 	AuditBeatService_Download_FullMethodName      = "/auditbeat.AuditBeatService/Download"
+	AuditBeatService_UsageStatus_FullMethodName   = "/auditbeat.AuditBeatService/UsageStatus"
 )
 
 // AuditBeatServiceClient is the client API for AuditBeatService service.
@@ -34,6 +35,7 @@ const (
 type AuditBeatServiceClient interface {
 	FetchBeatRule(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Download(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	UsageStatus(ctx context.Context, in *UsageStatusRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type auditBeatServiceClient struct {
@@ -62,12 +64,22 @@ func (c *auditBeatServiceClient) Download(ctx context.Context, in *emptypb.Empty
 	return out, nil
 }
 
+func (c *auditBeatServiceClient) UsageStatus(ctx context.Context, in *UsageStatusRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, AuditBeatService_UsageStatus_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuditBeatServiceServer is the server API for AuditBeatService service.
 // All implementations should embed UnimplementedAuditBeatServiceServer
 // for forward compatibility
 type AuditBeatServiceServer interface {
 	FetchBeatRule(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	Download(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	UsageStatus(context.Context, *UsageStatusRequest) (*emptypb.Empty, error)
 }
 
 // UnimplementedAuditBeatServiceServer should be embedded to have forward compatible implementations.
@@ -79,6 +91,9 @@ func (UnimplementedAuditBeatServiceServer) FetchBeatRule(context.Context, *empty
 }
 func (UnimplementedAuditBeatServiceServer) Download(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Download not implemented")
+}
+func (UnimplementedAuditBeatServiceServer) UsageStatus(context.Context, *UsageStatusRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UsageStatus not implemented")
 }
 
 // UnsafeAuditBeatServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -128,6 +143,24 @@ func _AuditBeatService_Download_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuditBeatService_UsageStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UsageStatusRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuditBeatServiceServer).UsageStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuditBeatService_UsageStatus_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuditBeatServiceServer).UsageStatus(ctx, req.(*UsageStatusRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuditBeatService_ServiceDesc is the grpc.ServiceDesc for AuditBeatService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -142,6 +175,10 @@ var AuditBeatService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Download",
 			Handler:    _AuditBeatService_Download_Handler,
+		},
+		{
+			MethodName: "UsageStatus",
+			Handler:    _AuditBeatService_UsageStatus_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

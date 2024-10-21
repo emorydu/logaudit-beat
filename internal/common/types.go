@@ -12,12 +12,17 @@ const (
 	Windows
 )
 
+const (
+	BitStatusClosed = iota
+	BitStatusStartup
+)
+
 func (o OperatingSystemType) String() string {
 	switch o {
 	case Linux:
-		return "Linux"
+		return "linux"
 	case Windows:
-		return "Windows"
+		return "windows"
 	default:
 		return ""
 	}

@@ -14,5 +14,14 @@ import "google/protobuf/empty.proto";
 service AuditBeatService {
   rpc FetchBeatRule(google.protobuf.Empty) returns (google.protobuf.Empty) {}
   rpc Download(google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  rpc UsageStatus(UsageStatusRequest) returns (google.protobuf.Empty) {}
 }
 
+
+
+message UsageStatusRequest {
+  int32 status = 1;
+  double cpu_usage = 2;
+  uint64 mem_usage = 3;
+}
