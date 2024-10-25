@@ -54,6 +54,17 @@ func NewMySQL(opts *MySQLOptions) (*gorm.DB, error) {
 		return nil, err
 	}
 
+	if opts.MaxIdleConnections == 0 {
+		opts.MaxIdleConnections = 5
+	}
+
+	if opts.MaxConnectionLifeTime == 0 {
+		opts.MaxConnectionLifeTime = time.Hour
+	}
+
+	if opts.MaxOpenConnections == 0 {
+		opts.MaxOpenConnections = 10
+	}
 	// SetMaxOpenConns set the maximum number of open connections to the database
 	sqlDB.SetMaxOpenConns(opts.MaxOpenConnections)
 

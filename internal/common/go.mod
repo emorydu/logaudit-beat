@@ -3,6 +3,7 @@ module github.com/emorydu/dbaudit/internal/common
 go 1.23.2
 
 require (
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/shirou/gopsutil/v4 v4.24.9
 	github.com/sirupsen/logrus v1.9.3

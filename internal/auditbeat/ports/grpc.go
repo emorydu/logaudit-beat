@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"github.com/emorydu/dbaudit/internal/auditbeat/service"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
-	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc/peer"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"strings"
+	"log"
 )
 
 type GrpcServer struct {
@@ -23,42 +23,52 @@ func NewGrpcServer(svc service.FetchService) GrpcServer {
 	return GrpcServer{svc: svc}
 }
 
-func (s GrpcServer) FetchBeatRule(ctx context.Context, input *emptypb.Empty) (*emptypb.Empty, error) {
-	// TODO
-	ip, err := FromContextRemoteIP(ctx)
+func (s GrpcServer) FetchBeatRule(ctx context.Context, req *auditbeat.FetchBeatRuleRequest) (*auditbeat.FetchBeatRuleResponse, error) {
+	info, err := s.svc.QueryConfigInfo(ctx, req.GetIp())
 	if err != nil {
-		logrus.Errorf("fetchbeatrule error: %v", err)
+		return nil, status.Errorf(codes.Internal, "error query configuration info failed: %v", err)
 	}
-	fmt.Println(ip)
-	return &emptypb.Empty{}, nil
+	operator, err := s.svc.QueryMonitorInfo(ctx, req.GetIp())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error query monitor info failed: %v", err)
+	}
+
+	return &auditbeat.FetchBeatRuleResponse{
+		Operator: int32(operator),
+		Data:     info,
+	}, nil
 }
 
 func (s GrpcServer) Download(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
-	// TODO
+
 	return &emptypb.Empty{}, nil
 }
 
 func (s GrpcServer) UsageStatus(ctx context.Context, req *auditbeat.UsageStatusRequest) (*emptypb.Empty, error) {
-	// TODO:
-	ip, err := FromContextRemoteIP(ctx)
+	fmt.Println("Reporting usage status request: cpu, mem, status, updated:", req.CpuUsage, req.MemUsage, req.Status, 0)
+	err := s.svc.CreateOrModUsage(ctx, req.Ip,
+		req.GetCpuUsage(),
+		req.GetMemUsage(),
+		int(req.GetStatus()), 0)
 	if err != nil {
-		logrus.Errorf("fetchbeatrule error: %v", err)
+		return nil, status.Errorf(codes.Internal, "error create or update usage status failed: %v", err)
 	}
-	fmt.Println(ip)
-	fmt.Println(req.Status)
-	fmt.Println(req.CpuUsage)
-	fmt.Println(req.MemUsage)
-	return nil, nil
+
+	return &emptypb.Empty{}, err
 }
 
-func FromContextRemoteIP(ctx context.Context) (string, error) {
-	p, ok := peer.FromContext(ctx)
-	if !ok {
-		return "", fmt.Errorf("from context query client ip error")
-	}
-	if p.Addr != nil {
-		return strings.Split(p.Addr.String(), ":")[0], nil
+func logError(err error) error {
+	if err != nil {
+		log.Println(err)
 	}
 
-	return "", fmt.Errorf("from context client ip error")
+	return err
+}
+
+func (s GrpcServer) Updated(ctx context.Context, req *auditbeat.UpdatedRequest) (*emptypb.Empty, error) {
+	err := s.svc.Updated(ctx, req.GetIp())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error query monitor info failed: %v", err)
+	}
+	return &emptypb.Empty{}, err
 }

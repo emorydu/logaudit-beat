@@ -1,14 +1,15 @@
+// Copyright 2024 Emory.Du <orangeduxiaocheng@gmail.com>. All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file.
+
 package gops
 
 import (
-	"fmt"
 	"testing"
 )
 
 func TestGops(t *testing.T) {
-	info, err := ProcessByNameUsed("WeChat")
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Println(info)
+	info := ProcessByNameUsed("fluent-bit")
+
+	t.Errorf("%#+v\n", info)
 }

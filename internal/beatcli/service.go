@@ -10,7 +10,9 @@ import (
 )
 
 type service struct {
-	cli auditbeat.AuditBeatServiceClient
-	ctx context.Context
-	os  string
+	cli     auditbeat.AuditBeatServiceClient
+	ctx     context.Context
+	os      string
+	Updated *int32
+	Signal  chan int
 }

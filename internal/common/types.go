@@ -17,6 +17,12 @@ const (
 	BitStatusStartup
 )
 
+const (
+	AgentOperatorStartup = iota
+	AgentOperatorUpdated
+	AgentOperatorStopped
+)
+
 func (o OperatingSystemType) String() string {
 	switch o {
 	case Linux:
@@ -27,3 +33,7 @@ func (o OperatingSystemType) String() string {
 		return ""
 	}
 }
+
+const (
+	InParserConn = "::::::::"
+)

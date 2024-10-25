@@ -6,7 +6,9 @@ package main
 
 import (
 	"context"
+	"github.com/emorydu/dbaudit/internal/auditbeat/db"
 	"github.com/emorydu/dbaudit/internal/auditbeat/ports"
+	"github.com/emorydu/dbaudit/internal/auditbeat/repository"
 	"github.com/emorydu/dbaudit/internal/auditbeat/service"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/emorydu/dbaudit/internal/common/logs"
@@ -19,7 +21,16 @@ func main() {
 	logger.Init()
 	defer logger.Close()
 	ctx := context.Background()
-	svc := service.NewFetchService(ctx)
+	orm, err := db.NewClickhouse(&db.ClickhouseOptions{
+		Host:     []string{"127.0.0.1:9000"},
+		Database: "logaudit",
+		Username: "default",
+		Password: "Safe.app",
+	})
+	if err != nil {
+		panic(err)
+	}
+	svc := service.NewFetchService(ctx, repository.NewRepository(orm))
 	server.RunGRPCServer(func(server *grpc.Server) {
 		grpcServer := ports.NewGrpcServer(svc)
 		auditbeat.RegisterAuditBeatServiceServer(server, grpcServer)

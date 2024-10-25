@@ -1,0 +1,36 @@
+@SET @hostip=192.168.1.205     #设置变量
+[SERVICE]
+    flush        1       #刷新采集时间，默认单位纳秒级
+    daemon       Off   #关闭后台启动，该配置可以删除，后期使用systemd管理
+    log_level    info    #日志级别
+    parsers_file parsers.conf   #调用正则文件
+    plugins_file plugins.conf   #调用插件文件
+    Hot_Reload   On   #开启热加载，实际测试下来不支持。更改配置后需要重启服务才行
+[INPUT]
+    name tail         #输入插件，agent只有tail
+    Path /root/nginx2.log   #采集文件绝对路径
+    tag nginx    #给该输入打标签
+    Read_from_Head true   #从文件开始采集
+    DB /etc/fluent-bit/db/nginx.db  #记录采集位置，重启服务后从该位置继续采集
+[FILTER]
+    name record_modifier      #该段表示将所有input都新增一个@hostip字段
+    match nginx
+    record @hostip ${@hostip}
+[FILTER]
+    Name parser         #调用parser过滤器
+    Match nginx         #匹配要过滤的来源日志
+    Key_Name log       #原始日志都存储在log字段，该行表示对log字段进行切割
+    Parser nginx1        #调用parser.conf中nginx1这个正则对日志进行解析
+    Reserve_Data on       #保留解析结果中的除log字段外所有其他原始字段，这里加上主要保留@hostip字段
+    Preserve_Key  on    #保留原有Key_Name字段值,也就是log字段，如果不要保留原始日志，则该行删除
+[OUTPUT]
+    name  kafka
+    match nginx
+    Brokers 192.168.1.123:9092
+    Topics nginxtest
+
+parser.conf文件配置
+[PARSER]
+    Name   nginx1   #解析器命令
+    Format regex    #表示正则
+    Regex  (?<remote>.*) - - \[(?<other>.*)    #正则表达式
