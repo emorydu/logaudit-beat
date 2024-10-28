@@ -1,3 +1,7 @@
+-- Copyright 2024 Emory.Du <orangeduxiaocheng@gmail.com>. All rights reserved.
+-- Use of this source code is governed by a MIT style
+-- license that can be found in the LICENSE file.
+
 SELECT ccr.srcIp,
        ccr.id,
        pr.param1, -- 正则表达式 是parsing中的Regex值

@@ -1,3 +1,7 @@
+// Copyright 2024 Emory.Du <orangeduxiaocheng@gmail.com>. All rights reserved.
+// Use of this source code is governed by a MIT style
+// license that can be found in the LICENSE file.
+
 package repository
 
 import (
@@ -48,12 +52,12 @@ func (r *repository) InsertOrUpdateMonitor(ctx context.Context, ip string, cpuUs
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			q = "INSERT INTO monitor (ip) VALUES (?)"
-			_ = r.db.Exec(ctx, q, ip)
+			return r.db.Exec(ctx, q, ip)
 		}
 	} else {
 
 		q = "ALTER TABLE monitor UPDATE cpuUse = ?, memUse = ?, status = ? WHERE ip = ?"
-		err = r.db.Exec(ctx, q, cpuUse, memUse, status, ip)
+		return r.db.Exec(ctx, q, cpuUse, memUse, status, ip)
 
 	}
 	return nil

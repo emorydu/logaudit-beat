@@ -45,7 +45,6 @@ func (s GrpcServer) Download(context.Context, *emptypb.Empty) (*emptypb.Empty, e
 }
 
 func (s GrpcServer) UsageStatus(ctx context.Context, req *auditbeat.UsageStatusRequest) (*emptypb.Empty, error) {
-	fmt.Println("Reporting usage status request: cpu, mem, status, updated:", req.CpuUsage, req.MemUsage, req.Status, 0)
 	err := s.svc.CreateOrModUsage(ctx, req.Ip,
 		req.GetCpuUsage(),
 		req.GetMemUsage(),
@@ -68,7 +67,8 @@ func logError(err error) error {
 func (s GrpcServer) Updated(ctx context.Context, req *auditbeat.UpdatedRequest) (*emptypb.Empty, error) {
 	err := s.svc.Updated(ctx, req.GetIp())
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "error query monitor info failed: %v", err)
+		fmt.Println("Update Operator error:", err)
+		return nil, status.Errorf(codes.Internal, "error update monitor operator info failed: %v", err)
 	}
 	return &emptypb.Empty{}, err
 }
