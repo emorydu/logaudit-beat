@@ -14,9 +14,11 @@ import (
 
 type Repository interface {
 	FetchConfInfo(context.Context, string) ([]model.ConfigInfo, error)
-	InsertOrUpdateMonitor(ctx context.Context, ip string, cpuUse, memUse float64, status, updated int) error
+	InsertOrUpdateMonitor(ctx context.Context, ip string, cpuUse, memUse float64, status int, timestamp int64) error
 	QueryMonitorInfo(ctx context.Context, ip string) (int, error)
 	Update(context.Context, string) error
+	QueryMonitorTimestamp(ctx context.Context) (map[string]int64, error)
+	UpdateStatus(ctx context.Context, ip string, status int) error
 }
 
 type repository struct {
@@ -29,6 +31,36 @@ func NewRepository(orm driver.Conn) Repository {
 	}
 }
 
+func (r *repository) UpdateStatus(ctx context.Context, ip string, status int) error {
+	q := "ALTER TABLE monitor UPDATE status = 2 WHERE ip = ?"
+	return r.db.Exec(ctx, q, ip)
+}
+
+func (r *repository) QueryMonitorTimestamp(ctx context.Context) (map[string]int64, error) {
+	q := "SELECT ip, timestamp FROM monitor;"
+
+	data := make(map[string]int64)
+	rows, err := r.db.Query(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			ip        string
+			timestamp int64
+		)
+		err = rows.Scan(&ip, &timestamp)
+		if err != nil {
+			return nil, err
+		}
+
+		data[ip] = timestamp
+	}
+
+	return data, nil
+}
 func (r *repository) Update(ctx context.Context, ip string) error {
 	q := "ALTER TABLE monitor UPDATE operator = 0 WHERE ip = ?"
 	return r.db.Exec(ctx, q, ip)
@@ -46,7 +78,7 @@ SELECT operator FROM monitor WHERE ip = ?;
 	return int(operator), nil
 }
 
-func (r *repository) InsertOrUpdateMonitor(ctx context.Context, ip string, cpuUse, memUse float64, status, _ int) error {
+func (r *repository) InsertOrUpdateMonitor(ctx context.Context, ip string, cpuUse, memUse float64, status int, timestamp int64) error {
 	q := "SELECT ip FROM monitor WHERE ip = ?"
 	err := r.db.QueryRow(ctx, q, ip).Scan(&ip)
 	if err != nil {
@@ -56,8 +88,8 @@ func (r *repository) InsertOrUpdateMonitor(ctx context.Context, ip string, cpuUs
 		}
 	} else {
 
-		q = "ALTER TABLE monitor UPDATE cpuUse = ?, memUse = ?, status = ? WHERE ip = ?"
-		return r.db.Exec(ctx, q, cpuUse, memUse, status, ip)
+		q = "ALTER TABLE monitor UPDATE cpuUse = ?, memUse = ?, status = ?, timestamp = ? WHERE ip = ?"
+		return r.db.Exec(ctx, q, cpuUse, memUse, status, timestamp, ip)
 
 	}
 	return nil

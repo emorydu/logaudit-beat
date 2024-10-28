@@ -163,7 +163,7 @@ func AppendContent(src string, ip, rootPath string) string {
 	for _, line := range lines {
 		if strings.Contains(line, "(insert)") {
 			fill := strings.Split(strings.TrimSpace(line), " ")[1]
-			// TODO hosts handlers
+			// TODO hosts handler
 			newline := fmt.Sprintf("\tDB %s/fluent-bit/db/%s.db\n", rootPath, fill)
 			s += newline + fmt.Sprintf(filterBlock, fill)
 		} else {

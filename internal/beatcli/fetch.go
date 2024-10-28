@@ -5,6 +5,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -158,7 +159,10 @@ func AppendContent(src string, ip, rootPath string) string {
 	for _, line := range lines {
 		if strings.Contains(line, "(insert)") {
 			fill := strings.Split(strings.TrimSpace(line), " ")[1]
-			// TODO
+			if strings.Contains(line, "Brokers") {
+				// Append
+				// TODO:
+			}
 			newline := fmt.Sprintf("\tDB %s/fluent-bit/db/%s.db\n", rootPath, fill)
 			s += newline + fmt.Sprintf(filterBlock, fill)
 		} else {
@@ -166,4 +170,49 @@ func AppendContent(src string, ip, rootPath string) string {
 		}
 	}
 	return fmt.Sprintf("%s%s", fmt.Sprintf(header, ip), s)
+}
+
+const (
+	hosts = "/etc/hosts"
+)
+
+func compareAppend(ip string, domain []string) error {
+	data, err := os.ReadFile(hosts)
+	if err != nil {
+		return err
+	}
+	for _, v := range domain {
+		//d := strings.Trim(v, fmt.Sprintf(":%d", port))
+		values := strings.Split(v, ":")
+		if len(values) != 2 {
+			return fmt.Errorf("compareAppend: domain style incorrect")
+		}
+		v = values[0]
+		d := fmt.Sprintf("%s %s", ip, v)
+		if !strings.Contains(string(data), d) {
+			return appendToHosts(d)
+		}
+	}
+
+	return nil
+}
+
+func appendToHosts(item string) error {
+	file, err := os.OpenFile(hosts, os.O_RDWR|os.O_APPEND, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+
+	_, err = writer.WriteString("\n" + item + "\n")
+	if err != nil {
+		return err
+	}
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

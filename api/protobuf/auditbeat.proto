@@ -38,4 +38,5 @@ message UsageStatusRequest {
   int32 status = 2;
   double cpu_usage = 3;
   double mem_usage = 4;
+  int64 timestamp = 5;
 }

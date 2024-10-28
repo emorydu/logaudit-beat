@@ -49,8 +49,6 @@ func Kill(app string) error {
 }
 
 func Exec(exe string, args string) error {
-	fmt.Println("EXE:", exe)
-	fmt.Println("ARGS:", args)
 	pwd, _ := os.Getwd()
 	fmt.Println("CMD:", "cmd", "/C", filepath.Join(pwd, exe), "-c", filepath.Join(pwd, args))
 	cmd := exec.Command("cmd", "/C", filepath.Join(pwd, exe), "-c", filepath.Join(pwd, args))

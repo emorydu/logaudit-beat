@@ -13,6 +13,7 @@ import (
 	"github.com/emorydu/dbaudit/internal/common/logs"
 	"os"
 	"runtime"
+	"time"
 )
 
 func Register() {
@@ -36,7 +37,8 @@ func Register() {
 		_ = auditBeatClosed()
 	}()
 	_, err = c.UsageStatus(context.Background(), &auditbeat.UsageStatusRequest{
-		Ip: cfg.LocalIP,
+		Ip:        cfg.LocalIP,
+		Timestamp: time.Now().Add(10 * time.Second).Unix(),
 	})
 	if err != nil {
 		panic(err)

@@ -11,7 +11,9 @@ import (
 	"github.com/emorydu/dbaudit/internal/auditbeat/repository"
 	"github.com/emorydu/dbaudit/internal/common"
 	"github.com/emorydu/dbaudit/internal/common/utils"
+	"github.com/sirupsen/logrus"
 	"path/filepath"
+	"time"
 )
 
 const (
@@ -47,9 +49,10 @@ type FetchService interface {
 	) ([]byte, error)
 
 	QueryConfigInfo(context.Context, string) ([]byte, error)
-	CreateOrModUsage(ctx context.Context, ip string, cpuUse, memUse float64, status, updated int) error
+	CreateOrModUsage(ctx context.Context, ip string, cpuUse, memUse float64, status int, timestamp int64) error
 	QueryMonitorInfo(context.Context, string) (int, error)
 	Updated(context.Context, string) error
+	Daemon()
 }
 
 type fetchService struct {
@@ -67,6 +70,26 @@ func NewFetchService(ctx context.Context, repo repository.Repository) FetchServi
 	}
 }
 
+func (f *fetchService) Daemon() {
+	for {
+		data, err := f.repo.QueryMonitorTimestamp(context.Background())
+		if err != nil {
+			logrus.Errorf("query monitor timestamps failed: %v", err)
+			return
+		}
+		for k, v := range data {
+			if v < time.Now().Unix() {
+				err = f.repo.UpdateStatus(context.Background(), k, 2)
+				if err != nil {
+					logrus.Errorf("update [%s] monitor timestamps failed: %v", k, err)
+					continue
+				}
+			}
+		}
+		time.Sleep(30 * time.Second)
+	}
+}
+
 func (f *fetchService) Updated(ctx context.Context, ip string) error {
 	return f.repo.Update(ctx, ip)
 }
@@ -75,8 +98,8 @@ func (f *fetchService) QueryMonitorInfo(ctx context.Context, ip string) (int, er
 	return f.repo.QueryMonitorInfo(ctx, ip)
 }
 
-func (f *fetchService) CreateOrModUsage(ctx context.Context, ip string, cpuUse, memUse float64, status, updated int) error {
-	return f.repo.InsertOrUpdateMonitor(ctx, ip, cpuUse, memUse, status, updated)
+func (f *fetchService) CreateOrModUsage(ctx context.Context, ip string, cpuUse, memUse float64, status int, timestamp int64) error {
+	return f.repo.InsertOrUpdateMonitor(ctx, ip, cpuUse, memUse, status, timestamp)
 }
 
 func (f *fetchService) QueryConfigInfo(ctx context.Context, ip string) ([]byte, error) {

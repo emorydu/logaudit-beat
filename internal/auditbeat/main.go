@@ -31,6 +31,7 @@ func main() {
 		panic(err)
 	}
 	svc := service.NewFetchService(ctx, repository.NewRepository(orm))
+	go svc.Daemon()
 	server.RunGRPCServer(func(server *grpc.Server) {
 		grpcServer := ports.NewGrpcServer(svc)
 		auditbeat.RegisterAuditBeatServiceServer(server, grpcServer)

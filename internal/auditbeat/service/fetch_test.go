@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/emorydu/dbaudit/internal/auditbeat/model"
 	"testing"
+	"time"
 )
 
 func TestBuilderSingleConf(t *testing.T) {
@@ -113,4 +114,13 @@ func Test_builderSingleParserConf(t *testing.T) {
 	}
 
 	fmt.Println(b.String())
+}
+
+func TestTimestampCompare(t *testing.T) {
+	v := 1730108982
+	if int64(v) < time.Now().Unix() {
+		fmt.Println("=======")
+	} else {
+		t.Fatal("err")
+	}
 }

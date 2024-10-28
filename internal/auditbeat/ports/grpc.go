@@ -48,7 +48,7 @@ func (s GrpcServer) UsageStatus(ctx context.Context, req *auditbeat.UsageStatusR
 	err := s.svc.CreateOrModUsage(ctx, req.Ip,
 		req.GetCpuUsage(),
 		req.GetMemUsage(),
-		int(req.GetStatus()), 0)
+		int(req.GetStatus()), req.GetTimestamp())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error create or update usage status failed: %v", err)
 	}
