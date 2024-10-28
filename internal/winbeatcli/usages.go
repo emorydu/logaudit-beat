@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/emorydu/dbaudit/internal/beatcli/systemutil"
 	"github.com/emorydu/dbaudit/internal/common"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/emorydu/dbaudit/internal/common/gops"
@@ -18,8 +19,8 @@ func (s service) UsageStatus() {
 		Ip: s.Config.LocalIP,
 	}
 	info := gops.ProcessByNameUsed("fluent-bit")
-	pid, err := RunShellReturnPid(fluentBit)
-	if err != nil || pid == "" {
+	exist, _, _, err := systemutil.IsProcessExist(fluentBit)
+	if err != nil || !exist {
 		req.Status = common.BitStatusClosed
 	} else {
 		req.Status = common.BitStatusStartup
