@@ -5,9 +5,11 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/emorydu/dbaudit/internal/beatcli/systemutil"
 	"github.com/emorydu/dbaudit/internal/common"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/sirupsen/logrus"
@@ -16,15 +18,13 @@ import (
 	"strings"
 )
 
-const fluentBit = "ps aux|grep fluent-bit|grep -v grep|awk '{print $2}'"
+const fluentBit = "fluent-bit.exe"
 
 const (
 	header = `@SET @hostip=%s
 [SERVICE]
 	flush 1
-	log_level info
 	parsers_file parsers.conf
-	plugins_file plugins.conf
 `
 
 	filterBlock = `
@@ -36,7 +36,7 @@ const (
 )
 
 func (s service) FetchConfigAndOp() {
-	pid, err := RunShellReturnPid(fluentBit)
+	exist, _, _, err := systemutil.IsProcessExist(fluentBit)
 	if err != nil {
 		logrus.Errorf("query fluent-bit pid error: %v", err)
 		return
@@ -46,8 +46,12 @@ func (s service) FetchConfigAndOp() {
 	})
 	if err != nil {
 		logrus.Errorf("fetch beat rule error: %v", err)
-		if pid != "" {
-			RunKillApp(pid)
+		if exist {
+			err = systemutil.Kill(fluentBit)
+			if err != nil {
+				logrus.Error("failed to kill fluent-bit process")
+				return
+			}
 		}
 		return
 	}
@@ -56,33 +60,35 @@ func (s service) FetchConfigAndOp() {
 	spans := strings.Split(string(resp.Data), common.InParserConn)
 
 	if resp.Operator == common.AgentOperatorStartup {
-		if pid == "" {
+		if !exist {
 			err = hotUpdate(spans, s.Config.LocalIP, s.rootPath)
 			if err != nil {
 				return
 			}
-			err = RunExec(fmt.Sprintf("%s%s", s.rootPath, "/fluent-bit/bin/fluent-bit"), s.rootPath+"/fluent-bit/fluent-bit.conf")
+			err = systemutil.Exec(fluentBit, "/fluent-bit/fluent-bit.conf")
 			if err != nil {
 				logrus.Errorf("run fluent-bit exec error: %v\n", err)
 				return
 			}
 		}
 	} else if resp.Operator == common.AgentOperatorUpdated {
-		// 存在则停止
-		if pid != "" {
-			RunKillApp(pid)
+		if exist {
+			err = systemutil.Kill(fluentBit)
+			if err != nil {
+				logrus.Error("failed to kill fluent-bit process")
+				return
+			}
 
 		}
 		err = hotUpdate(spans, s.Config.LocalIP, s.rootPath)
 		if err != nil {
 			return
 		}
-		err = RunExec(fmt.Sprintf("%s%s", s.rootPath, "/fluent-bit/bin/fluent-bit"), s.rootPath+"/fluent-bit/fluent-bit.conf")
+		err = systemutil.Exec(fluentBit, "/fluent-bit/fluent-bit.conf")
 		if err != nil {
 			logrus.Errorf("run fluent-bit exec error: %v\n", err)
 		}
-		// 写入配置文件  注意hosts修改，配置信息增加项
-		// 远程单独修改operator为0
+
 		// TODO
 		_, err = s.cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
 		if err != nil {
@@ -91,9 +97,8 @@ func (s service) FetchConfigAndOp() {
 		}
 
 	} else if resp.Operator == common.AgentOperatorStopped {
-		// 存在则停止
-		if pid != "" {
-			err = RunKillApp(pid)
+		if exist {
+			err = systemutil.Kill(fluentBit)
 			if err != nil {
 				logrus.Errorf("kill component error: %v", err)
 				return
@@ -158,7 +163,7 @@ func AppendContent(src string, ip, rootPath string) string {
 	for _, line := range lines {
 		if strings.Contains(line, "(insert)") {
 			fill := strings.Split(strings.TrimSpace(line), " ")[1]
-			// TODO
+			// TODO hosts handlers
 			newline := fmt.Sprintf("\tDB %s/fluent-bit/db/%s.db\n", rootPath, fill)
 			s += newline + fmt.Sprintf(filterBlock, fill)
 		} else {
@@ -166,4 +171,50 @@ func AppendContent(src string, ip, rootPath string) string {
 		}
 	}
 	return fmt.Sprintf("%s%s", fmt.Sprintf(header, ip), s)
+}
+
+const (
+	hosts = "C:\\Windows\\System32\\Drivers\\etc\\hosts"
+)
+
+// compareAppend compare the current hosts file and complete the additional writing of the hosts file as needed.
+func compareAppend(ip string, domain []string) error {
+	data, err := os.ReadFile(hosts)
+	if err != nil {
+		return err
+	}
+	for _, v := range domain {
+		//d := strings.Trim(v, fmt.Sprintf(":%d", port))
+		values := strings.Split(v, ":")
+		if len(values) != 2 {
+			return fmt.Errorf("compareAppend: domain style incorrect")
+		}
+		v = values[0]
+		d := fmt.Sprintf("%s %s", ip, v)
+		if !strings.Contains(string(data), d) {
+			return appendToHosts(d)
+		}
+	}
+
+	return nil
+}
+
+func appendToHosts(item string) error {
+	file, err := os.OpenFile(hosts, os.O_RDWR|os.O_APPEND, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+
+	_, err = writer.WriteString("\n" + item + "\n")
+	if err != nil {
+		return err
+	}
+	err = writer.Flush()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
