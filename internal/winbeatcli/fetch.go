@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 )
 
@@ -36,6 +37,7 @@ func (s service) FetchConfigAndOp() {
 	}
 	resp, err := s.cli.FetchBeatRule(context.Background(), &auditbeat.FetchBeatRuleRequest{
 		Ip: s.Config.LocalIP,
+		Os: runtime.GOOS,
 	})
 	if err != nil {
 		logrus.Errorf("fetch beat rule error: %v", err)
