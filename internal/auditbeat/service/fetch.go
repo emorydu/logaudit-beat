@@ -130,7 +130,7 @@ const (
 func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]byte, error) {
 	if os == "windows" {
 		// TODO
-		return []byte(fmt.Sprintf(windowsTemplate, "kafka:9092")), nil
+		return []byte(fmt.Sprintf(windowsTemplate, "logaudit:9092")), nil
 	}
 	info, err := f.repo.FetchConfInfo(ctx, ip)
 	if err != nil {

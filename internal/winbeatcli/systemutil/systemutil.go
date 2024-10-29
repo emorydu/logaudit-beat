@@ -50,8 +50,8 @@ func Kill(app string) error {
 
 func Exec(exe string, args string) error {
 	pwd, _ := os.Getwd()
-	fmt.Println("CMD:", "cmd", "/C", filepath.Join(pwd, exe), "-c", filepath.Join(pwd, args))
-	cmd := exec.Command("cmd", "/C", filepath.Join(pwd, exe), "-c", filepath.Join(pwd, args))
+	fmt.Println("CMD:", "cmd", "/C", filepath.Join(pwd, "fluent-bit", "bin", exe), "-c", filepath.Join(pwd, "fluent-bit", args))
+	cmd := exec.Command("cmd", "/C", filepath.Join(pwd, "fluent-bit", "bin", exe), "-c", filepath.Join(pwd, "fluent-bit", args))
 	go func() {
 		_ = cmd.Start()
 	}()
