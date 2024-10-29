@@ -60,9 +60,20 @@ func GetInstallPath() (string, error) {
 func Exec(exe string, args string) error {
 
 	pwd, _ := os.Getwd()
-	fmt.Println("PWD:", pwd)
+	values := strings.Split(pwd, `\`)
+	fmt.Println(values)
+	pwd = ""
+	for _, v := range values {
+		if strings.Contains(v, " ") {
+			pwd += fmt.Sprintf(`"%s"\\`, v)
+
+		} else {
+			pwd += fmt.Sprintf(`%s\\`, v)
+		}
+
+	}
 	//cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %s\\fluent-bit\\%s`, installPath, exe, installPath, args)
-	cmdExec := fmt.Sprintf(`C:\\"Program Files"\\beatclient\\fluent-bit\\bin\\%s -c C:\\"Program Files"\\beatclient\\fluent-bit\\%s`, exe, args)
+	cmdExec := fmt.Sprintf(`%sbeatclient\\fluent-bit\\bin\\%s -c %sfluent-bit\\%s`, pwd, exe, pwd, args)
 	fmt.Println("CMDEXEC:", cmdExec)
 	cmd := exec.Command("cmd.exe")
 	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: fmt.Sprintf(`/c %s`, cmdExec), HideWindow: true}
