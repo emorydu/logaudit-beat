@@ -58,9 +58,9 @@ func GetInstallPath() (string, error) {
 }
 
 func Exec(exe string, args string) error {
-	installPath, _ := GetInstallPath()
 
-	fmt.Println("installPath:", installPath)
+	pwd, _ := os.Getwd()
+	fmt.Println("PWD:", pwd)
 	//cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %s\\fluent-bit\\%s`, installPath, exe, installPath, args)
 	cmdExec := fmt.Sprintf(`C:\\"Program Files"\\beatclient\\fluent-bit\\bin\\%s -c C:\\"Program Files"\\beatclient\\fluent-bit\\%s`, exe, args)
 	fmt.Println("CMDEXEC:", cmdExec)
