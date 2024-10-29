@@ -13,6 +13,7 @@ import (
 	"github.com/emorydu/dbaudit/internal/common/gops"
 	"github.com/sirupsen/logrus"
 	"strconv"
+	"time"
 )
 
 func (s service) UsageStatus() {
@@ -24,7 +25,8 @@ func (s service) UsageStatus() {
 		_ = auditBeatClosed()
 	}()
 	req := &auditbeat.UsageStatusRequest{
-		Ip: s.Config.LocalIP,
+		Ip:        s.Config.LocalIP,
+		Timestamp: time.Now().Add(30 * time.Second).Unix(),
 	}
 	info := gops.ProcessByNameUsed("fluent-bit")
 	exist, _, _, err := systemutil.IsProcessExist(fluentBit)

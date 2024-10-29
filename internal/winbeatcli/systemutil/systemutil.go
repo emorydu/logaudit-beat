@@ -61,7 +61,6 @@ func Exec(exe string, args string) error {
 
 	pwd, _ := os.Getwd()
 	values := strings.Split(pwd, `\`)
-	fmt.Println(values)
 	pwd = ""
 	for _, v := range values {
 		if strings.Contains(v, " ") {
@@ -74,12 +73,11 @@ func Exec(exe string, args string) error {
 	}
 	//cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %s\\fluent-bit\\%s`, installPath, exe, installPath, args)
 	cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %sfluent-bit\\%s`, pwd, exe, pwd, args)
-	fmt.Println("CMDEXEC:", cmdExec)
 	cmd := exec.Command("cmd.exe")
 	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: fmt.Sprintf(`/c %s`, cmdExec), HideWindow: true}
 	err := cmd.Start()
 	if err != nil {
-		fmt.Println("ERROR:", err)
+		return err
 	}
 	//cmdExe := fmt.Sprintf(`"%s"\%s -c "%s"\%s`, pwd, filepath.Join("fluent-bit", "bin", exe), pwd, args)
 	//fmt.Println("CMD:", cmdExe)
