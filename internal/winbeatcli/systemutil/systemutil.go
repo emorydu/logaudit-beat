@@ -59,7 +59,7 @@ func Exec(exe string, args string) error {
 	cmd := exec.Command("cmd.exe")
 	cmdExe := fmt.Sprintf(`"%s"\%s -c "%s\%s"`, pwd, filepath.Join("fluent-bit", "bin", exe), pwd, args)
 	fmt.Println("CMD:", cmd)
-	cmd.SysProcAttr = &syscall.SysProcAttr{CmdClien: fmt.Sprintf(`/C %s`, cmdExe), HideWindow: true}
+	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: fmt.Sprintf(`/C %s`, cmdExe), HideWindow: true}
 	go func() {
 		_ = cmd.Start()
 	}()
