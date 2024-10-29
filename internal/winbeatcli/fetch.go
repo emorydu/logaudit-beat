@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/emorydu/dbaudit/internal/beatcli/systemutil"
 	"github.com/emorydu/dbaudit/internal/common"
+	"github.com/emorydu/dbaudit/internal/common/client"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -30,12 +31,19 @@ const (
 )
 
 func (s service) FetchConfigAndOp() {
+	cli, auditBeatClosed, err := client.NewAuditBeatClient(s.Config.ServerAddr)
+	if err != nil {
+		return
+	}
+	defer func() {
+		_ = auditBeatClosed()
+	}()
 	exist, _, _, err := systemutil.IsProcessExist(fluentBit)
 	if err != nil {
 		logrus.Errorf("query fluent-bit pid error: %v", err)
 		return
 	}
-	resp, err := s.cli.FetchBeatRule(context.Background(), &auditbeat.FetchBeatRuleRequest{
+	resp, err := cli.FetchBeatRule(context.Background(), &auditbeat.FetchBeatRuleRequest{
 		Ip: s.Config.LocalIP,
 		Os: runtime.GOOS,
 	})
@@ -50,7 +58,6 @@ func (s service) FetchConfigAndOp() {
 		}
 		return
 	}
-	fmt.Printf("resp:%#+v\n", resp.Operator)
 
 	if resp.Operator == common.AgentOperatorStartup {
 		if !exist {
@@ -82,8 +89,7 @@ func (s service) FetchConfigAndOp() {
 			logrus.Errorf("run fluent-bit exec error: %v\n", err)
 		}
 
-		// TODO
-		_, err = s.cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
+		_, err = cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
 		if err != nil {
 			logrus.Errorf("update beat operator error: %v", err)
 			return

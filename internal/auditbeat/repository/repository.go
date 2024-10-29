@@ -37,7 +37,7 @@ func (r *repository) UpdateStatus(ctx context.Context, ip string, status int) er
 }
 
 func (r *repository) QueryMonitorTimestamp(ctx context.Context) (map[string]int64, error) {
-	q := "SELECT ip, timestamp FROM monitor;"
+	q := "SELECT ip, timestamp FROM monitor WHERE operator != 2;"
 
 	data := make(map[string]int64)
 	rows, err := r.db.Query(ctx, q)

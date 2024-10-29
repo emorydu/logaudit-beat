@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/emorydu/dbaudit/internal/beatcli/systemutil"
 	"github.com/emorydu/dbaudit/internal/common"
+	"github.com/emorydu/dbaudit/internal/common/client"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/emorydu/dbaudit/internal/common/gops"
 	"github.com/sirupsen/logrus"
@@ -15,6 +16,13 @@ import (
 )
 
 func (s service) UsageStatus() {
+	cli, auditBeatClosed, err := client.NewAuditBeatClient(s.Config.ServerAddr)
+	if err != nil {
+		return
+	}
+	defer func() {
+		_ = auditBeatClosed()
+	}()
 	req := &auditbeat.UsageStatusRequest{
 		Ip: s.Config.LocalIP,
 	}
@@ -30,7 +38,7 @@ func (s service) UsageStatus() {
 		v := fmt.Sprintf("%.2f", info.CpuUsage)
 		req.CpuUsage, _ = strconv.ParseFloat(v, 10)
 	}
-	_, err = s.cli.UsageStatus(s.ctx, req)
+	_, err = cli.UsageStatus(s.ctx, req)
 	if err != nil {
 		logrus.Errorf("upload usage and status error: %v", err)
 	}

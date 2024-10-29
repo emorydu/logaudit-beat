@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/emorydu/dbaudit/internal/common"
+	"github.com/emorydu/dbaudit/internal/common/client"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -35,12 +36,17 @@ const (
 )
 
 func (s service) FetchConfigAndOp() {
+	cli, clo, err := client.NewAuditBeatClient(s.Config.ServerAddr)
+	if err != nil {
+		return
+	}
+	defer clo()
 	pid, err := RunShellReturnPid(fluentBit)
 	if err != nil {
 		logrus.Errorf("query fluent-bit pid error: %v", err)
 		return
 	}
-	resp, err := s.cli.FetchBeatRule(context.Background(), &auditbeat.FetchBeatRuleRequest{
+	resp, err := cli.FetchBeatRule(context.Background(), &auditbeat.FetchBeatRuleRequest{
 		Ip: s.Config.LocalIP,
 	})
 	if err != nil {
@@ -83,7 +89,7 @@ func (s service) FetchConfigAndOp() {
 		// 写入配置文件  注意hosts修改，配置信息增加项
 		// 远程单独修改operator为0
 		// TODO
-		_, err = s.cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
+		_, err = cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
 		if err != nil {
 			logrus.Errorf("update beat operator error: %v", err)
 			return

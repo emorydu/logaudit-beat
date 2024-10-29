@@ -8,8 +8,6 @@ import (
 	"context"
 	"flag"
 	"github.com/emorydu/dbaudit/internal/beatcli/conf"
-	"github.com/emorydu/dbaudit/internal/common/client"
-	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/emorydu/dbaudit/internal/common/logs"
 	"os"
 	"runtime"
@@ -28,26 +26,11 @@ func Register() {
 	logger.Init()
 	defer logger.Close()
 
-	c, auditBeatClosed, err := client.NewAuditBeatClient(cfg.ServerAddr)
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		_ = auditBeatClosed()
-	}()
-	_, err = c.UsageStatus(context.Background(), &auditbeat.UsageStatusRequest{
-		Ip: cfg.LocalIP,
-	})
-	if err != nil {
-		panic(err)
-	}
-
 	pwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
 	svc := service{
-		cli:      c,
 		ctx:      context.Background(),
 		os:       runtime.GOOS,
 		Updated:  new(int32),
