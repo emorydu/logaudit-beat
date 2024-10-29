@@ -16,3 +16,11 @@ func TestIsProcessExist(t *testing.T) {
 func TestKill(t *testing.T) {
 	fmt.Println(Kill("filebeat"))
 }
+
+func TestGetInstallPath(t *testing.T) {
+	path, err := GetInstallPath()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(path)
+}

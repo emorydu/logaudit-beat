@@ -61,7 +61,8 @@ func Exec(exe string, args string) error {
 	installPath, _ := GetInstallPath()
 
 	fmt.Println("installPath:", installPath)
-	cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %s\\fluent-bit\\%s`, installPath, exe, installPath, args)
+	//cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %s\\fluent-bit\\%s`, installPath, exe, installPath, args)
+	cmdExec := fmt.Sprintf(`C:\\Program Files\\beatclient\\fluent-bit\\bin\\%s -c C:\\Program Files\\beatclient\\fluent-bit\\%s`, exe, args)
 	fmt.Println("CMDEXEC:", cmdExec)
 	cmd := exec.Command("cmd.exe")
 	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: fmt.Sprintf(`/c %s`, cmdExec), HideWindow: true}
