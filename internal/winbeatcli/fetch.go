@@ -65,7 +65,7 @@ func (s service) FetchConfigAndOp() {
 			if err != nil {
 				return
 			}
-			err = systemutil.Exec(fluentBit, `fluent-bit\fluent-bit.conf`)
+			err = systemutil.Exec(fluentBit, `fluent-bit.conf`)
 			if err != nil {
 				logrus.Errorf("run fluent-bit exec error: %v\n", err)
 				return
@@ -84,7 +84,7 @@ func (s service) FetchConfigAndOp() {
 		if err != nil {
 			return
 		}
-		err = systemutil.Exec(fluentBit, `fluent-bit\fluent-bit.conf`)
+		err = systemutil.Exec(fluentBit, `fluent-bit.conf`)
 		if err != nil {
 			logrus.Errorf("run fluent-bit exec error: %v\n", err)
 		}

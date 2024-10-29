@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -48,15 +47,35 @@ func Kill(app string) error {
 	return cmd.Wait()
 }
 
+func GetInstallPath() (string, error) {
+	s, err := exec.LookPath(os.Args[0])
+	if err != nil {
+		return "", err
+	}
+	i := strings.LastIndex(s, "\\")
+	installPath := s[0 : i+1]
+	return installPath, nil
+}
+
 func Exec(exe string, args string) error {
-	pwd, _ := os.Getwd()
-	cmdExe := fmt.Sprintf(`"%s"\%s -c "%s"\%s`, pwd, filepath.Join("fluent-bit", "bin", exe), pwd, args)
-	fmt.Println("CMD:", cmdExe)
-	//fmt.Println("CMD:", "cmd", "/C", filepath.Join(pwd, "fluent-bit", "bin", exe), "-c", filepath.Join(pwd, args))
-	cmd := exec.Command("cmd", "/C", cmdExe)
-	go func() {
-		_ = cmd.Start()
-	}()
+	installPath, _ := GetInstallPath()
+
+	fmt.Println("installPath:", installPath)
+	cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %s\\fluent-bit\\%s`, installPath, exe, installPath, args)
+	fmt.Println("CMDEXEC:", cmdExec)
+	cmd := exec.Command("cmd.exe")
+	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: fmt.Sprintf(`/c %s`, cmdExec), HideWindow: true}
+	err := cmd.Start()
+	if err != nil {
+		fmt.Println("ERROR:", err)
+	}
+	//cmdExe := fmt.Sprintf(`"%s"\%s -c "%s"\%s`, pwd, filepath.Join("fluent-bit", "bin", exe), pwd, args)
+	//fmt.Println("CMD:", cmdExe)
+	////fmt.Println("CMD:", "cmd", "/C", filepath.Join(pwd, "fluent-bit", "bin", exe), "-c", filepath.Join(pwd, args))
+	//cmd := exec.Command("cmd", "/C", cmdExe)
+	//go func() {
+	//	_ = cmd.Start()
+	//}()
 	//pwd, _ := os.Getwd()
 	//cmd := exec.Command("cmd.exe")
 	//cmdExe := fmt.Sprintf(`"%s"\%s -c "%s"\%s`, pwd, filepath.Join("fluent-bit", "bin", exe), pwd, args)
