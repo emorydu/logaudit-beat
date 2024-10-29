@@ -25,8 +25,8 @@ const fluentBit = "fluent-bit.exe"
 const (
 	header = `@SET @hostip=%s
 [SERVICE]
-	flush 1
-	parsers_file parsers.conf
+    flush 1
+    parsers_file parsers.conf
 `
 )
 
