@@ -1,0 +1,36 @@
+@SET @hostip=192.168.1.205
+[SERVICE]
+    flush        1
+    parsers_file parsers.conf
+
+[INPUT]
+    name                  tail
+    tag               catalina
+    path                  /test.log
+    read_from_head        true
+    Multiline        On    #开启多行合并
+    Parser_Firstline catalina   #调用parsers.conf文件中的mutiline正则
+    Skip_Empty_Lines On    #删掉日志中出现的空行
+    DB /etc/fluent-bit/catalina.db
+
+[FILTER]
+    name record_modifier      #该段表示将所有input都新增一个@hostip字段
+    match catalina
+    record @hostip ${@hostip}
+
+[FILTER]      #该过滤器表示解析出来只要包含log字段则丢弃该条数据，有log字段就表示解析失败
+        Name grep
+        Match catalina
+        Exclude log .
+
+[OUTPUT]
+    name  kafka
+    match catalina
+    Brokers 192.168.1.123:9092
+    Topics catalina
+
+parser.conf
+[PARSER]
+    Name catalina
+    Format regex
+    Regex /\[(?<time>\d+\-\d+\-\d+ \d+:\d+:\d+)\] \[(?<devel>.*)\] (?<info>.*)/

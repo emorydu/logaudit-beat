@@ -1,11 +1,7 @@
 @SET @hostip=192.168.1.205     #设置变量
 [SERVICE]
     flush        1       #刷新采集时间，默认单位纳秒级
-    daemon       Off   #关闭后台启动，该配置可以删除，后期使用systemd管理
-    log_level    info    #日志级别
     parsers_file parsers.conf   #调用正则文件
-    plugins_file plugins.conf   #调用插件文件
-    Hot_Reload   On   #开启热加载，实际测试下来不支持。更改配置后需要重启服务才行
 [INPUT]
     name tail         #输入插件，agent只有tail
     Path /root/nginx2.log   #采集文件绝对路径
@@ -22,12 +18,19 @@
     Key_Name log       #原始日志都存储在log字段，该行表示对log字段进行切割
     Parser nginx1        #调用parser.conf中nginx1这个正则对日志进行解析
     Reserve_Data on       #保留解析结果中的除log字段外所有其他原始字段，这里加上主要保留@hostip字段
-    Preserve_Key  on    #保留原有Key_Name字段值,也就是log字段，如果不要保留原始日志，则该行删除
+
+[FILTER]      #该过滤器表示解析出来只要包含log字段则丢弃该条数据，有log字段就表示解析失败
+        Name grep
+        Match nginx
+        Exclude log .
+
 [OUTPUT]
     name  kafka
     match nginx
     Brokers 192.168.1.123:9092
     Topics nginxtest
+
+
 
 parser.conf文件配置
 [PARSER]

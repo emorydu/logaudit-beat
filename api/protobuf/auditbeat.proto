@@ -26,6 +26,7 @@ message UpdatedRequest {
 
 message FetchBeatRuleRequest {
   string ip = 1;
+  string os = 2;
 }
 
 message FetchBeatRuleResponse {

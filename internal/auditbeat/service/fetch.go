@@ -48,7 +48,7 @@ type FetchService interface {
 		common.OperatingSystemType,
 	) ([]byte, error)
 
-	QueryConfigInfo(context.Context, string) ([]byte, error)
+	QueryConfigInfo(context.Context, string, string) ([]byte, error)
 	CreateOrModUsage(ctx context.Context, ip string, cpuUse, memUse float64, status int, timestamp int64) error
 	QueryMonitorInfo(context.Context, string) (int, error)
 	Updated(context.Context, string) error
@@ -102,7 +102,36 @@ func (f *fetchService) CreateOrModUsage(ctx context.Context, ip string, cpuUse, 
 	return f.repo.InsertOrUpdateMonitor(ctx, ip, cpuUse, memUse, status, timestamp)
 }
 
-func (f *fetchService) QueryConfigInfo(ctx context.Context, ip string) ([]byte, error) {
+const (
+	windowsTemplate = `
+[SERVICE]
+    FLUSH 1
+    Parsers_File parsers.conf
+
+[INPUT]
+    Name winlog
+    Channels System,Application,Security,Setup,Windows PowerShell
+    Interval_Sec 1
+    Tag windows_log
+
+[FILTER]
+    Name record_modifier
+    Match windows_log
+    Record @hostip ${@hostip}
+
+[OUTPUT]
+    Name kafka
+    Match windows_log
+    Brokers %s
+    Topics windows_log
+`
+)
+
+func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]byte, error) {
+	if os == "windows" {
+		// TODO
+		return []byte(fmt.Sprintf(windowsTemplate, "kafka:9092")), nil
+	}
 	info, err := f.repo.FetchConfInfo(ctx, ip)
 	if err != nil {
 		return nil, err
@@ -117,6 +146,7 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip string) ([]byte, 
 		if v.Check == stopped {
 			continue
 		}
+		// TODO
 		inoutBuffer.Write(builderSingleConf(v.AgentPath, v.IndexName, "kafka:9092", v.MultiParse))
 		name := v.IndexName
 		if v.MultiParse == startup {
@@ -183,7 +213,12 @@ func builderSingleConf(path, indexName, others string, multipart int8) []byte {
 	Key_Name log
 	Parser %s
 	Reserve_Data on
-`, indexName, indexName)
+
+[FILTER]
+	Name grep
+	Match %s
+	Exclude log .
+`, indexName, indexName, indexName)
 
 	outputBlock := fmt.Sprintf(`
 [OUTPUT]

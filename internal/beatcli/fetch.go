@@ -23,9 +23,7 @@ const (
 	header = `@SET @hostip=%s
 [SERVICE]
 	flush 1
-	log_level info
 	parsers_file parsers.conf
-	plugins_file plugins.conf
 `
 
 	filterBlock = `
@@ -46,13 +44,13 @@ func (s service) FetchConfigAndOp() {
 		Ip: s.Config.LocalIP,
 	})
 	if err != nil {
-		logrus.Errorf("fetch beat rule error: %v", err)
-		if pid != "" {
+		// todo
+		if strings.Contains(err.Error(), "connect: connection refused") {
 			RunKillApp(pid)
 		}
+		logrus.Errorf("fetch beat rule error: %v", err)
 		return
 	}
-	fmt.Printf("resp:%#+v\n", resp.Operator)
 
 	spans := strings.Split(string(resp.Data), common.InParserConn)
 
