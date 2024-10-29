@@ -49,22 +49,24 @@ func Kill(app string) error {
 }
 
 func Exec(exe string, args string) error {
-	//pwd, _ := os.Getwd()
-	//fmt.Println("CMD:", "cmd", "/C", filepath.Join(pwd, "fluent-bit", "bin", exe), "-c", filepath.Join(pwd, args))
-	//cmd := exec.Command("cmd", "/C", filepath.Join(pwd, "fluent-bit", "bin", exe), "-c", filepath.Join(pwd, args))
-	//go func() {
-	//	_ = cmd.Start()
-	//}()
 	pwd, _ := os.Getwd()
-	cmd := exec.Command("cmd.exe")
 	cmdExe := fmt.Sprintf(`"%s"\%s -c "%s"\%s`, pwd, filepath.Join("fluent-bit", "bin", exe), pwd, args)
 	fmt.Println("CMD:", cmdExe)
-	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: fmt.Sprintf(`/C %s`, cmdExe), HideWindow: true}
-	output, err := cmd.Output()
-	fmt.Println("OUTPUT:", string(output))
-	if err != nil {
-		fmt.Println("ERROR:", err)
-	}
+	//fmt.Println("CMD:", "cmd", "/C", filepath.Join(pwd, "fluent-bit", "bin", exe), "-c", filepath.Join(pwd, args))
+	cmd := exec.Command("cmd", "/C", cmdExe)
+	go func() {
+		_ = cmd.Start()
+	}()
+	//pwd, _ := os.Getwd()
+	//cmd := exec.Command("cmd.exe")
+	//cmdExe := fmt.Sprintf(`"%s"\%s -c "%s"\%s`, pwd, filepath.Join("fluent-bit", "bin", exe), pwd, args)
+	//fmt.Println("CMD:", cmdExe)
+	//cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: fmt.Sprintf(`/C %s`, cmdExe), HideWindow: true}
+	//output, err := cmd.Output()
+	//fmt.Println("OUTPUT:", string(output))
+	//if err != nil {
+	//	fmt.Println("ERROR:", err)
+	//}
 
 	return nil
 }
