@@ -23,15 +23,15 @@ const fluentBit = "ps aux|grep fluent-bit|grep -v grep|awk '{print $2}'"
 const (
 	header = `@SET @hostip=%s
 [SERVICE]
-	flush 1
-	parsers_file parsers.conf
+    flush 1
+    parsers_file parsers.conf
 `
 
 	filterBlock = `
 [FILTER]
-	name record_modifier
-	match %s
-	record @hostip ${@hostip}
+    name record_modifier
+    match %s
+    record @hostip ${@hostip}
 `
 )
 
@@ -167,7 +167,7 @@ func AppendContent(src string, ip, rootPath string) string {
 				// Append
 				// TODO:
 			}
-			newline := fmt.Sprintf("\tDB %s/fluent-bit/db/%s.db\n", rootPath, fill)
+			newline := fmt.Sprintf("    DB %s/fluent-bit/db/%s.db\n", rootPath, fill)
 			s += newline + fmt.Sprintf(filterBlock, fill)
 		} else {
 			s += line + "\n"
