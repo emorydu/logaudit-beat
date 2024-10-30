@@ -151,7 +151,7 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 			continue
 		}
 		// TODO
-		inoutBuffer.Write(builderSingleConf(v.AgentPath, v.IndexName, "kafka:9092", v.MultiParse))
+		inoutBuffer.Write(builderSingleConf(v.AgentPath, v.IndexName, "logaudit:9092", v.MultiParse))
 		name := v.IndexName
 		if v.MultiParse == startup {
 			name = "multiline"
