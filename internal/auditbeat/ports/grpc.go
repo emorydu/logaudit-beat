@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
+	"time"
 )
 
 type GrpcServer struct {
@@ -24,7 +25,7 @@ func NewGrpcServer(svc service.FetchService) GrpcServer {
 }
 
 func (s GrpcServer) FetchBeatRule(ctx context.Context, req *auditbeat.FetchBeatRuleRequest) (*auditbeat.FetchBeatRuleResponse, error) {
-	info, err := s.svc.QueryConfigInfo(ctx, req.GetIp(), req.GetOs())
+	info, hostsInfo, err := s.svc.QueryConfigInfo(ctx, req.GetIp(), req.GetOs())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error query configuration info failed: %v", err)
 	}
@@ -32,10 +33,14 @@ func (s GrpcServer) FetchBeatRule(ctx context.Context, req *auditbeat.FetchBeatR
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error query monitor info failed: %v", err)
 	}
-
+	hostsInfos := make([]string, 0, len(hostsInfo))
+	for k := range hostsInfo {
+		hostsInfos = append(hostsInfos, k)
+	}
 	return &auditbeat.FetchBeatRuleResponse{
-		Operator: int32(operator),
-		Data:     info,
+		Operator:  int32(operator),
+		Data:      info,
+		HostInfos: hostsInfos,
 	}, nil
 }
 
@@ -48,7 +53,7 @@ func (s GrpcServer) UsageStatus(ctx context.Context, req *auditbeat.UsageStatusR
 	err := s.svc.CreateOrModUsage(ctx, req.Ip,
 		req.GetCpuUsage(),
 		req.GetMemUsage(),
-		int(req.GetStatus()), req.GetTimestamp())
+		int(req.GetStatus()), time.Now().Add(30*time.Second).Unix())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error create or update usage status failed: %v", err)
 	}

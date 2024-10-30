@@ -37,3 +37,8 @@ func (o OperatingSystemType) String() string {
 const (
 	InParserConn = "::::::::"
 )
+
+const (
+	CloseMapping = iota
+	OpenMapping
+)

@@ -58,6 +58,15 @@ func (s service) FetchConfigAndOp() {
 		return
 	}
 
+	hostsInfos := resp.GetHostInfos()
+	for _, hostInfo := range hostsInfos {
+		vals := strings.Split(hostInfo, " ")
+		err = compareAppend(vals[0], []string{vals[1]})
+		if err != nil {
+			logrus.Errorf("rewrite hostsinfo error: %v", err)
+			return
+		}
+	}
 	spans := strings.Split(string(resp.Data), common.InParserConn)
 
 	if resp.Operator == common.AgentOperatorStartup {
@@ -163,10 +172,6 @@ func AppendContent(src string, ip, rootPath string) string {
 	for _, line := range lines {
 		if strings.Contains(line, "(insert)") {
 			fill := strings.Split(strings.TrimSpace(line), " ")[1]
-			if strings.Contains(line, "Brokers") {
-				// Append
-				// TODO:
-			}
 			newline := fmt.Sprintf("    DB %s/fluent-bit/db/%s.db\n", rootPath, fill)
 			s += newline + fmt.Sprintf(filterBlock, fill)
 		} else {
@@ -186,12 +191,6 @@ func compareAppend(ip string, domain []string) error {
 		return err
 	}
 	for _, v := range domain {
-		//d := strings.Trim(v, fmt.Sprintf(":%d", port))
-		values := strings.Split(v, ":")
-		if len(values) != 2 {
-			return fmt.Errorf("compareAppend: domain style incorrect")
-		}
-		v = values[0]
 		d := fmt.Sprintf("%s %s", ip, v)
 		if !strings.Contains(string(data), d) {
 			return appendToHosts(d)

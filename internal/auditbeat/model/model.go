@@ -5,16 +5,32 @@
 package model
 
 type ConfigInfo struct {
-	IP              string
-	AgentPath       string
-	MultiParse      int8   // 0 stop 1 startup
-	RegexParamValue string // regexValue (parser_file)
-	Check           int8   // rule open / stop
-	ParseType       int8   // format (0 regex, 1 json)
-	IndexName       string // topic = parse_file (name)
-	MappingIP       string
-	MappingStatus   int8
-	KafkaPort       int32
+	IP                   string
+	AgentPath            string
+	MultiParse           int8   // 0 stop 1 startup
+	RegexParamValue      string // regexValue (parser_file)
+	Check                int8   // rule open / stop
+	ParseType            int8   // format (0 regex, 1 json)
+	IndexName            string // topic = parse_file (name)
+	MappingIP            string
+	MappingStatus        int8
+	KafkaPort            int32
+	Secondary            string // field value
+	SecondaryState       int8   // 0 stop 1 startup
+	SecondaryParsingType int8   // 0 regex, 1 json
+	SecondaryRegexValue  string // regex value
+	RID                  int32
+}
+
+type ReallyBroker struct {
+	DVal    string
+	DDomain string
+	DPort   int
+
+	VStatus int
+	MIP     string
+	MDomain string
+	MPort   int
 }
 
 type CollectInfo struct {
@@ -71,12 +87,12 @@ param2 String
 ignoreReg String
 feature String
 check Int8
-secondary String
+secondary String （需要解析的字段值）
 igEscape Int8
 logSlice Int8
-secondaryState Int8
-parseType2 Int8
-param1_2 String
+secondaryState Int8 （是否启用二次解析 0 / 1s）
+parseType2 Int8 （二次解析解析方式）
+param1_2 String （正则）
 param2_2 String
 mapJson String
 cType Int8

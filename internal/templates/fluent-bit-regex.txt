@@ -1,23 +1,22 @@
-@SET @hostip=192.168.1.205     #设置变量
-[SERVICE]
-    flush        1       #刷新采集时间，默认单位纳秒级
-    parsers_file parsers.conf   #调用正则文件
+
 [INPUT]
-    name tail         #输入插件，agent只有tail
-    Path /root/nginx2.log   #采集文件绝对路径
-    tag nginx    #给该输入打标签
-    Read_from_Head true   #从文件开始采集
-    DB /etc/fluent-bit/db/nginx.db  #记录采集位置，重启服务后从该位置继续采集
+    name tail
+    Path /root/nginx2.log
+    tag nginx    #给该输入打标签，标签为表名 change
+    Read_from_Head true
+    DB /etc/fluent-bit/db/nginx.db change (tag.db)
+
+[FILTER]
+    Name parser        #调用parser过滤器
+    Match nginx         #匹配要过滤的来源日志，为表名 tag=indexName
+    Key_Name log
+    Parser topic+规则编号        #调用parser.conf中nginx1这个正则对日志进行解析，解析规则序号或者json==??
+    Reserve_Data on
+
 [FILTER]
     name record_modifier      #该段表示将所有input都新增一个@hostip字段
-    match nginx
+    match nginx # tag =indexName
     record @hostip ${@hostip}
-[FILTER]
-    Name parser         #调用parser过滤器
-    Match nginx         #匹配要过滤的来源日志
-    Key_Name log       #原始日志都存储在log字段，该行表示对log字段进行切割
-    Parser nginx1        #调用parser.conf中nginx1这个正则对日志进行解析
-    Reserve_Data on       #保留解析结果中的除log字段外所有其他原始字段，这里加上主要保留@hostip字段
 
 [FILTER]      #该过滤器表示解析出来只要包含log字段则丢弃该条数据，有log字段就表示解析失败
         Name grep
@@ -27,13 +26,15 @@
 [OUTPUT]
     name  kafka
     match nginx
-    Brokers 192.168.1.123:9092
-    Topics nginxtest
-
-
+    Brokers logaudit:9092
+    Topics nginx
 
 parser.conf文件配置
 [PARSER]
-    Name   nginx1   #解析器命令
+    Name   nginx1   #解析器名称
     Format regex    #表示正则
     Regex  (?<remote>.*) - - \[(?<other>.*)    #正则表达式
+
+[PARSER]
+    Name   json   #解析器名称
+    Format json
