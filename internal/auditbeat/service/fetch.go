@@ -181,8 +181,8 @@ func builderSingleParserConf(name string, parserType ParserType, regexValue stri
 	} else {
 		parser = fmt.Sprintf(`
 [PARSER]
-	Name %s
-	Format %s
+    Name %s
+    Format %s
 `, name, parserType.String())
 	}
 
