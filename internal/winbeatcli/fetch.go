@@ -136,7 +136,7 @@ func AppendContent(src string, ip, rootPath string) string {
 				// Append
 				// TODO:
 			}
-			newline := fmt.Sprintf("\tDB %s/fluent-bit/db/%s.db\n", rootPath, fill)
+			newline := fmt.Sprintf(`    DB %s\fluent-bit\db\%s.db\n`, rootPath, fill)
 			s += newline
 		} else {
 			s += line + "\n"
