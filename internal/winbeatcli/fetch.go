@@ -59,9 +59,11 @@ func (s service) FetchConfigAndOp() {
 		return
 	}
 
+	spans := strings.Split(string(resp.Data), common.InParserConn)
+
 	if resp.Operator == common.AgentOperatorStartup {
 		if !exist {
-			err = hotUpdate(resp.Data, s.Config.LocalIP, s.rootPath)
+			err = hotUpdate(spans, s.Config.LocalIP, s.rootPath)
 			if err != nil {
 				return
 			}
@@ -80,7 +82,7 @@ func (s service) FetchConfigAndOp() {
 			}
 
 		}
-		err = hotUpdate(resp.Data, s.Config.LocalIP, s.rootPath)
+		err = hotUpdate(spans, s.Config.LocalIP, s.rootPath)
 		if err != nil {
 			return
 		}
@@ -109,19 +111,38 @@ func (s service) FetchConfigAndOp() {
 	}
 }
 
-func hotUpdate(data []byte, ip string, rootPath string) error {
-	err := os.WriteFile(rootPath+"/fluent-bit/fluent-bit.conf", AppendContent(data, ip), 0644)
+func hotUpdate(spans []string, ip string, rootPath string) error {
+	err := os.WriteFile(rootPath+"/fluent-bit/fluent-bit.conf", []byte(AppendContent(spans[0], ip, rootPath)), 0644)
 	if err != nil {
 		logrus.Errorf("write fluent-bit config file error: %v", err)
 		return err
 	}
+	err = os.WriteFile(rootPath+"/fluent-bit/parsers.conf", []byte(spans[1]), 0644)
+	if err != nil {
+		logrus.Errorf("write fluent-bit parsers file error: %v", err)
+		return err
+	}
+
 	return nil
 }
 
-func AppendContent(data []byte, ip string) []byte {
-	s := fmt.Sprintf(header, ip)
-	s += string(data)
-	return []byte(s)
+func AppendContent(src string, ip, rootPath string) string {
+	lines := strings.Split(src, "\n")
+	var s string
+	for _, line := range lines {
+		if strings.Contains(line, "(insert)") {
+			fill := strings.Split(strings.TrimSpace(line), " ")[1]
+			if strings.Contains(line, "Brokers") {
+				// Append
+				// TODO:
+			}
+			newline := fmt.Sprintf("\tDB %s/fluent-bit/db/%s.db\n", rootPath, fill)
+			s += newline
+		} else {
+			s += line + "\n"
+		}
+	}
+	return fmt.Sprintf("%s%s", fmt.Sprintf(header, ip), s)
 }
 
 func (s service) Fetch() string {

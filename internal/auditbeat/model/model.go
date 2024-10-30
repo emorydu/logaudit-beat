@@ -12,6 +12,18 @@ type ConfigInfo struct {
 	Check           int8   // rule open / stop
 	ParseType       int8   // format (0 regex, 1 json)
 	IndexName       string // topic = parse_file (name)
+	MappingIP       string
+	MappingStatus   int8
+	KafkaPort       int32
+}
+
+type CollectInfo struct {
+	MappingIP     string
+	MappingStatus int32
+	KafkaPort     int32
+
+	RealIp   string
+	RealPort string
 }
 
 /*
@@ -23,7 +35,7 @@ sysType Int8	// 系统类型
 encoding Int8	// 编码
 agentPort Int32	// Agent通信端口
 kafkaPort Int32	// Kafka通信端口
-mapIp String	// ？？？
+mapIp String	// ？？？映射IP
 create_time DataTime
 
 ===============================

@@ -128,10 +128,14 @@ const (
 )
 
 func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]byte, error) {
-	if os == "windows" {
-		// TODO
-		return []byte(fmt.Sprintf(windowsTemplate, "logaudit:9092")), nil
-	}
+
+	// todo
+	//f.repo.QueryCollectConfig()
+
+	//if os == "windows" {
+	//	// TODO
+	//	return []byte(fmt.Sprintf(windowsTemplate, "logaudit:9092")), nil
+	//}
 	info, err := f.repo.FetchConfInfo(ctx, ip)
 	if err != nil {
 		return nil, err
@@ -155,6 +159,10 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 		parserBuffer.Write(builderSingleParserConf(name, ParserType(v.ParseType), v.RegexParamValue))
 	}
 
+	if os == "windows" {
+		inoutBuffer.Write([]byte(fmt.Sprintf(windowsTemplate, "logaudit:9092")))
+	}
+
 	inoutBuffer.Write([]byte(common.InParserConn))
 	inoutBuffer.Write(parserBuffer.Bytes())
 
@@ -166,9 +174,9 @@ func builderSingleParserConf(name string, parserType ParserType, regexValue stri
 	if parserType == RegexParser {
 		parser = fmt.Sprintf(`
 [PARSER]
-	Name %s
-	Format %s
-	Regex %s
+    Name %s
+    Format %s
+    Regex %s
 `, name, parserType.String(), regexValue)
 	} else {
 		parser = fmt.Sprintf(`
@@ -186,46 +194,46 @@ func builderSingleConf(path, indexName, others string, multipart int8) []byte {
 	if multipart == stopped {
 		inputBlock = fmt.Sprintf(`
 [INPUT]
-	Name tail
-	Path %s
-	Tag %s
-	Read_From_Head true
-	(insert) %s
+    Name tail
+    Path %s
+    Tag %s
+    Read_From_Head true
+    (insert) %s
 `, path, indexName, indexName)
 	} else {
 		inputBlock = fmt.Sprintf(`
 [INPUT]
-	Name tail
-	Multiline On
-	Path %s
-	Parser_Firstline multiline
-	Skip_Empty_Lines on
-	Tag %s
-	Read_From_Head true
-	(insert) %s 
+    Name tail
+    Multiline On
+    Path %s
+    Parser_Firstline multiline
+    Skip_Empty_Lines on
+    Tag %s
+    Read_From_Head true
+    (insert) %s 
 `, path, indexName, indexName)
 	}
 
 	filterBlock := fmt.Sprintf(`
 [FILTER]
-	Name parser
-	Match %s
-	Key_Name log
-	Parser %s
-	Reserve_Data on
+    Name parser
+    Match %s
+    Key_Name log
+    Parser %s
+    Reserve_Data on
 
 [FILTER]
-	Name grep
-	Match %s
-	Exclude log .
+    Name grep
+    Match %s
+    Exclude log .
 `, indexName, indexName, indexName)
 
 	outputBlock := fmt.Sprintf(`
 [OUTPUT]
-	Name kafka
-	Match %s
-	Brokers %s
-	Topics data_%s
+    Name kafka
+    Match %s
+    Brokers %s
+    Topics data_%s
 `, indexName, others, indexName)
 
 	return []byte(inputBlock + filterBlock + outputBlock)

@@ -19,6 +19,7 @@ type Repository interface {
 	Update(context.Context, string) error
 	QueryMonitorTimestamp(ctx context.Context) (map[string]int64, error)
 	UpdateStatus(ctx context.Context, ip string, status int) error
+	QueryCollectConfig(ctx context.Context, ip string) (model.CollectInfo, error)
 }
 
 type repository struct {
@@ -29,6 +30,22 @@ func NewRepository(orm driver.Conn) Repository {
 	return &repository{
 		db: orm,
 	}
+}
+
+func (r *repository) QueryCollectConfig(ctx context.Context, ip string) (model.CollectInfo, error) {
+	// TODO
+	//q := "SELECT mapStatus, mapIp, kafkaPort FROM collect_conf WHERE ip = ?"
+	//var collectConf model.CollectInfo
+	//err := r.db.QueryRow(ctx, q, ip).Scan(&collectConf.MappingStatus, &collectConf.MappingIP, &collectConf.KafkaPort)
+	//if err != nil {
+	//	return model.CollectInfo{}, err
+	//}
+	//if collectConf.MappingStatus != 1 {
+	//	q1 := `SELECT param_value FROM param_config WHERE param_id = 2001`
+	//	q2 := `SELECT * FROM net_config`
+	//}
+
+	return model.CollectInfo{}, nil
 }
 
 func (r *repository) UpdateStatus(ctx context.Context, ip string, status int) error {
@@ -99,6 +116,9 @@ func (r *repository) FetchConfInfo(ctx context.Context, ip string) ([]model.Conf
 	items := make([]model.ConfigInfo, 0)
 	rows, err := r.db.Query(ctx, `
 SELECT ccr.srcIp,
+       ccf.mapStatus,
+       ccf.mapIp,
+       ccf.kafkaPort,
        ccr.agentPath,
        pr.mutiParse,
        pr.param1 AS regexValue,
@@ -117,7 +137,7 @@ WHERE ccr.agentPath != '' AND ccr.srcIp = ?;
 
 	for rows.Next() {
 		item := model.ConfigInfo{}
-		err := rows.Scan(&item.IP, &item.AgentPath, &item.MultiParse, &item.RegexParamValue, &item.Check, &item.ParseType, &item.IndexName)
+		err := rows.Scan(&item.IP, &item.MappingStatus, &item.MappingIP, &item.KafkaPort, &item.AgentPath, &item.MultiParse, &item.RegexParamValue, &item.Check, &item.ParseType, &item.IndexName)
 		if err != nil {
 			return nil, err
 		}
