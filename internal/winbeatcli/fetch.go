@@ -142,7 +142,7 @@ func AppendContent(src string, ip, rootPath string) string {
 			s += line + "\n"
 		}
 	}
-	return fmt.Sprintf("%s", s)
+	return fmt.Sprintf("%s%s", fmt.Sprintf(header, ip), s)
 }
 
 func (s service) Fetch() string {

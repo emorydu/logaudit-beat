@@ -104,10 +104,6 @@ func (f *fetchService) CreateOrModUsage(ctx context.Context, ip string, cpuUse, 
 
 const (
 	windowsTemplate = `
-[SERVICE]
-    FLUSH 1
-    Parsers_File parsers.conf
-
 [INPUT]
     Name winlog
     Channels System,Application,Security,Setup,Windows PowerShell
