@@ -69,24 +69,21 @@ func (s service) FetchConfigAndOp() {
 	} else if resp.Operator == common.AgentOperatorUpdated {
 		// 存在则停止
 		if pid != "" {
-			RunKillApp(pid)
-
-		}
-		err = hotUpdate(spans, s.Config.LocalIP, s.rootPath)
-		if err != nil {
-			return
-		}
-		err = RunExec(fmt.Sprintf("%s%s", s.rootPath, "/fluent-bit"), s.rootPath+"/fluent-bit.conf")
-		if err != nil {
-			s.log.Errorf("run fluent-bit exec error: %v\n", err)
-		}
-		// 写入配置文件  注意hosts修改，配置信息增加项
-		// 远程单独修改operator为0
-		// TODO
-		_, err = cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
-		if err != nil {
-			s.log.Errorf("update beat operator error: %v", err)
-			return
+			_ = RunKillApp(pid)
+		} else {
+			err = hotUpdate(spans, s.Config.LocalIP, s.rootPath)
+			if err != nil {
+				return
+			}
+			_, err = cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
+			if err != nil {
+				s.log.Errorf("update beat operator error: %v", err)
+				return
+			}
+			err = RunExec(fmt.Sprintf("%s%s", s.rootPath, "/fluent-bit"), s.rootPath+"/fluent-bit.conf")
+			if err != nil {
+				s.log.Errorf("run fluent-bit exec error: %v\n", err)
+			}
 		}
 
 	} else if resp.Operator == common.AgentOperatorStopped {

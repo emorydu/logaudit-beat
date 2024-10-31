@@ -82,20 +82,22 @@ func (s service) FetchConfigAndOp() {
 				return
 			}
 
-		}
-		err = hotUpdate(spans, s.Config.LocalIP, s.rootPath)
-		if err != nil {
-			return
-		}
-		err = systemutil.Exec(fluentBit, `fluent-bit.conf`)
-		if err != nil {
-			s.log.Errorf("run fluent-bit exec error: %v\n", err)
-		}
+		} else {
+			err = hotUpdate(spans, s.Config.LocalIP, s.rootPath)
+			if err != nil {
+				return
+			}
 
-		_, err = cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
-		if err != nil {
-			s.log.Errorf("update beat operator error: %v", err)
-			return
+			_, err = cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
+			if err != nil {
+				s.log.Errorf("update beat operator error: %v", err)
+				return
+			}
+			err = systemutil.Exec(fluentBit, `fluent-bit.conf`)
+			if err != nil {
+				s.log.Errorf("run fluent-bit exec error: %v\n", err)
+			}
+
 		}
 
 	} else if resp.Operator == common.AgentOperatorStopped {
