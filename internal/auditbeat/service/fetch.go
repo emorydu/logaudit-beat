@@ -15,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -125,6 +126,14 @@ const (
 `
 )
 
+const (
+	header = `@SET @hostip=%s
+[SERVICE]
+    flush 1
+    parsers_file parsers.conf
+`
+)
+
 func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]byte, map[string]struct{}, error) {
 
 	info, err := f.repo.FetchConfInfo(ctx, ip)
@@ -137,6 +146,8 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 
 	inoutBuffer := new(bytes.Buffer)
 	parserBuffer := new(bytes.Buffer)
+
+	inoutBuffer.Write([]byte(fmt.Sprintf(header, ip)))
 
 	domain := "logaudit"
 	port := 9092
@@ -158,7 +169,6 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 			MPort:   int(v.KafkaPort),
 			MDomain: domain,
 		})
-
 		hostsInfo[fmt.Sprintf("%s %s", broker.DVal, broker.DDomain)] = struct{}{}
 		bitConf, parsersConf := builderSingleConf2(v.AgentPath, v.IndexName, fmt.Sprintf("%s:%d", broker.DDomain, broker.DPort), v.MultiParse, v.SecondaryState,
 			v.Secondary, v.ParseType, v.SecondaryParsingType, v.RegexParamValue, v.SecondaryRegexValue, v.RID)
@@ -170,18 +180,26 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
     Name json
     Format json
 ` {
-			tmpJsonParser = parsersConf
+			if tmpJsonParser == "" {
+				tmpJsonParser = parsersConf
+			}
 
+		} else if strings.Contains(parsersConf, fmt.Sprintf(`
+[PARSER]
+    Name json
+    Format json
+`)) {
+			// todo
+			ss := strings.ReplaceAll(parsersConf, fmt.Sprintf(`
+[PARSER]
+    Name json
+    Format json
+`), "")
+			parserBuffer.Write([]byte(ss))
 		} else {
 			parserBuffer.Write([]byte(parsersConf))
 		}
 
-		//inoutBuffer.Write(builderSingleConf(v.AgentPath, v.IndexName, fmt.Sprintf("%s:%d", broker.DDomain, broker.DPort), v.MultiParse, v.SecondaryState, v.Secondary))
-		////name := v.IndexName
-		////if v.MultiParse == startup {
-		////	name = "multiline"
-		////}
-		//parserBuffer.Write(builderSingleParserConf(v.IndexName, ParserType(v.ParseType), v.RegexParamValue, v.SecondaryState, ParserType(v.SecondaryParsingType), v.SecondaryRegexValue))
 	}
 
 	parserBuffer.Write([]byte(tmpJsonParser))
@@ -197,6 +215,15 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 	return inoutBuffer.Bytes(), hostsInfo, nil
 }
 
+const (
+	fBlock = `
+[FILTER]
+    Name grep
+    Match %s
+    Exclude log .
+`
+)
+
 func builderSingleConf2(collectPath string, indexName string, other string, multiParse int8,
 	secondaryStatus int8, secondary string, parserType int8, secondaryParserType int8, regexValue string,
 	secondaryRegexValue string, rid int32) (string, string) {
@@ -206,6 +233,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
 	outputBlock := ""
 	parser := ""
 
+	// input
 	if multiParse == 1 {
 		inputBlock = fmt.Sprintf(`
 [INPUT]
@@ -229,14 +257,66 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
 `, collectPath, indexName, indexName)
 	}
 
+	// filter
 	if parserType == 2 { // json
 		filterBlock = fmt.Sprintf(`
+[FILTER]
+    Name record_modifier
+    Match %s
+    Record @hostip ${@hostip}
+
 [FILTER]
     Name parser
     Match %s
     Key_Name log
     Parser json
     Reserve_Data on
+`, indexName, indexName)
+	} else {
+		filterBlock = fmt.Sprintf(`
+[FILTER]
+    Name record_modifier
+    Match %s
+    Record @hostip ${@hostip}
+
+[FILTER]
+    Name parser
+    Match %s
+    Key_Name log
+    Parser %s
+    Reserve_Data on
+`, indexName, indexName, indexName+ridstr)
+	}
+
+	if secondaryStatus == 1 {
+		if secondaryParserType == 0 { // regex
+			filterBlock += fmt.Sprintf(`
+[FILTER]
+    Name parser
+    Match %s
+    Key_Name %s
+    parser %s
+    Reserve_Data On
+`, indexName, secondary, indexName+ridstr+"_again")
+		} else {
+			filterBlock += fmt.Sprintf(`
+[FILTER]
+    Name parser
+    Match %s
+    Key_Name %s
+    Parser json
+    Reserve_Data On
+`, indexName, secondary)
+		}
+
+	}
+
+	if multiParse == 1 {
+		filterBlock = fmt.Sprintf(`
+[FILTER]
+    Name record_modifier
+    Match %s
+    Record @hostip ${@hostip}
 
 [FILTER]
     Name grep
@@ -244,35 +324,14 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Exclude log .
 `, indexName, indexName)
 	} else {
-		filterBlock = fmt.Sprintf(`
-[FILTER]
-    Name parser
-    Match %s
-    Key_Name log
-    Parser %s
-    Reserve_Data on
-
-[FILTER]
-    Name grep
-    Match %s
-    Exclude log .
-`, indexName, indexName+ridstr, indexName)
-	}
-
-	if secondaryStatus == 1 {
-		filterBlock = fmt.Sprintf(`
-[FILTER]
-    Name parser
-    Match %s
-    Key_Name %s
-    parser %s
-    Reserve_Data On
-
-[FILTER]
-    Name grep
-    Match %s
-    Exclude log .
-`, indexName, secondary, indexName+ridstr+"_again", indexName)
+		//		filterBlock += fmt.Sprintf(`
+		//[FILTER]
+		//    Name grep
+		//    Match %s
+		//    Exclude log .
+		//
+		//`, indexName)
+		filterBlock += fmt.Sprintf(fBlock, indexName)
 	}
 
 	outputBlock = fmt.Sprintf(`

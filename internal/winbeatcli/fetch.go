@@ -22,14 +22,6 @@ import (
 
 const fluentBit = "fluent-bit.exe"
 
-const (
-	header = `@SET @hostip=%s
-[SERVICE]
-    flush 1
-    parsers_file parsers.conf
-`
-)
-
 func (s service) FetchConfigAndOp() {
 	s.log.Info("FetchConfigAndOp startup....")
 	cli, auditBeatClosed, err := client.NewAuditBeatClient(s.Config.ServerAddr)
@@ -145,7 +137,7 @@ func AppendContent(src string, ip, rootPath string) string {
 			s += line + "\n"
 		}
 	}
-	return fmt.Sprintf("%s%s", fmt.Sprintf(header, ip), s)
+	return s
 }
 
 func (s service) Fetch() string {

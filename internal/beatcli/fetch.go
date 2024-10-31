@@ -19,21 +19,6 @@ import (
 
 const fluentBit = "ps aux|grep fluent-bit|grep -v grep|awk '{print $2}'"
 
-const (
-	header = `@SET @hostip=%s
-[SERVICE]
-    flush 1
-    parsers_file parsers.conf
-`
-
-	filterBlock = `
-[FILTER]
-    name record_modifier
-    match %s
-    record @hostip ${@hostip}
-`
-)
-
 func (s service) FetchConfigAndOp() {
 	s.log.Info("FetchConfigAndOp startup....")
 	cli, clo, err := client.NewAuditBeatClient(s.Config.ServerAddr)
@@ -171,12 +156,12 @@ func AppendContent(src string, ip, rootPath string) string {
 		if strings.Contains(line, "(insert)") {
 			fill := strings.Split(strings.TrimSpace(line), " ")[1]
 			newline := fmt.Sprintf("    DB %s/db/%s.db\n", rootPath, fill)
-			s += newline + fmt.Sprintf(filterBlock, fill)
+			s += newline
 		} else {
 			s += line + "\n"
 		}
 	}
-	return fmt.Sprintf("%s%s", fmt.Sprintf(header, ip), s)
+	return s
 }
 
 const (

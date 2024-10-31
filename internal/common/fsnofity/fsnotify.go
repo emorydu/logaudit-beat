@@ -5,12 +5,14 @@
 package main
 
 import (
+	"bufio"
+	"encoding/base64"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/transform"
 	"io"
-	"log"
 	"os"
-	"time"
 )
 
 type EventType int
@@ -56,52 +58,96 @@ func (w *Watcher) Remove(path string) {
 }
 
 func main() {
-	src := "src.txt"
-	dst := "dump.txt"
 
+	// 源文件和目标文件
+	sourceFile := "live_input.txt"
+	targetFile := "encoded_output.txt"
+
+	// 创建目标文件
+	outputFile, err := os.Create(targetFile)
+	if err != nil {
+		fmt.Println("Error creating target file:", err)
+		return
+	}
+	defer outputFile.Close()
+
+	// 创建文件监视器
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		panic(err)
+		fmt.Println("Error creating watcher:", err)
+		return
 	}
 	defer watcher.Close()
 
-	err = watcher.Add(src)
+	// 添加源文件监视
+	err = watcher.Add(sourceFile)
 	if err != nil {
-		panic(err)
+		fmt.Println("Error adding file to watcher:", err)
+		return
 	}
 
-	go func() {
-		srcFile, err := os.Open(src)
-		if err != nil {
-			panic(err)
-		}
-		dstFile, err := os.OpenFile(dst, os.O_WRONLY, 0666)
-		if err != nil {
-			panic(err)
-		}
+	// 打开源文件
+	inputFile, err := os.Open(sourceFile)
+	if err != nil {
+		fmt.Println("Error opening source file:", err)
+		return
+	}
+	defer inputFile.Close()
 
-		for {
-			select {
-			case event, ok := <-watcher.Events:
-				if !ok {
-					return
-				}
-				fmt.Println(event)
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					fmt.Println("File modified:", event.Name)
-					dumpFileContent(srcFile, dstFile)
-				}
-			case err, ok := <-watcher.Errors:
-				if !ok {
-					return
-				}
-				log.Println("Error:", err)
-			}
-		}
-	}()
+	// 创建缓冲读取器和写入器
+	writer := bufio.NewWriter(outputFile)
+
+	// 记录文件指针位置
+	var lastPosition int64
 
 	for {
-		time.Sleep(time.Second)
+		select {
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return
+			}
+			if event.Op&fsnotify.Write == fsnotify.Write {
+				// 文件被写入，读取新内容
+				newPosition, err := inputFile.Seek(0, io.SeekEnd)
+				if err != nil {
+					fmt.Println("Error seeking in file:", err)
+					continue
+				}
+				if newPosition > lastPosition {
+					// 从上次位置读取新内容
+					if _, err := inputFile.Seek(lastPosition, io.SeekStart); err != nil {
+						fmt.Println("Error seeking to last position:", err)
+						continue
+					}
+
+					// 使用转换器将 ISO-8859-1 转换为 UTF-8
+					decoder := charmap.ISO8859_1.NewDecoder()
+					reader := transform.NewReader(inputFile, decoder)
+
+					// 读取新内容并进行编码
+					scanner := bufio.NewScanner(reader)
+					for scanner.Scan() {
+						line := scanner.Text()
+						encoded := base64.StdEncoding.EncodeToString([]byte(line))
+						_, err = writer.WriteString(encoded + "\n")
+						if err != nil {
+							fmt.Println("Error writing to file:", err)
+							return
+						}
+					}
+					lastPosition = newPosition
+					// 刷新写入器
+					if err := writer.Flush(); err != nil {
+						fmt.Println("Error flushing writer:", err)
+					}
+				}
+			}
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return
+			}
+			fmt.Println("Error:", err)
+		}
 	}
 }
 
