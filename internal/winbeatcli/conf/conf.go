@@ -10,14 +10,9 @@ import (
 )
 
 type Config struct {
-	Clickhouse struct {
-		Database string `yaml:"database"`
-		User     string `yaml:"user"`
-		Pass     string `yaml:"pass"`
-	} `yaml:"clickhouse"`
 	Log struct {
-		Level string `yaml:"level"`
-		Path  string `yaml:"path"`
+		Level string   `yaml:"level"`
+		Path  []string `yaml:"path"`
 	} `yaml:"log"`
 	LocalIP    string `yaml:"local_ip"`
 	ServerAddr string `yaml:"server_addr"`

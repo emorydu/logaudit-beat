@@ -10,11 +10,11 @@ import (
 	"github.com/emorydu/dbaudit/internal/common/client"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/emorydu/dbaudit/internal/common/gops"
-	"github.com/sirupsen/logrus"
 	"strconv"
 )
 
 func (s service) UsageStatus() {
+	s.log.Info("UsageStatus startup....")
 	cli, clo, err := client.NewAuditBeatClient(s.Config.ServerAddr)
 	if err != nil {
 		return
@@ -39,7 +39,7 @@ func (s service) UsageStatus() {
 	}
 	_, err = cli.UsageStatus(s.ctx, req)
 	if err != nil {
-		logrus.Errorf("upload usage and status error: %v", err)
+		s.log.Errorf("upload usage and status error: %v", err)
 	}
 }
 

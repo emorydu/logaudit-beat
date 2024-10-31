@@ -12,7 +12,6 @@ import (
 	"github.com/emorydu/dbaudit/internal/common"
 	"github.com/emorydu/dbaudit/internal/common/client"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
-	"github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"strings"
@@ -36,6 +35,7 @@ const (
 )
 
 func (s service) FetchConfigAndOp() {
+	s.log.Info("FetchConfigAndOp startup....")
 	cli, clo, err := client.NewAuditBeatClient(s.Config.ServerAddr)
 	if err != nil {
 		return
@@ -43,7 +43,7 @@ func (s service) FetchConfigAndOp() {
 	defer clo()
 	pid, err := RunShellReturnPid(fluentBit)
 	if err != nil {
-		logrus.Errorf("query fluent-bit pid error: %v", err)
+		s.log.Errorf("query fluent-bit pid error: %v", err)
 		return
 	}
 	resp, err := cli.FetchBeatRule(context.Background(), &auditbeat.FetchBeatRuleRequest{
@@ -54,7 +54,7 @@ func (s service) FetchConfigAndOp() {
 		if strings.Contains(err.Error(), "connect: connection refused") {
 			RunKillApp(pid)
 		}
-		logrus.Errorf("fetch beat rule error: %v", err)
+		s.log.Errorf("fetch beat rule error: %v", err)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (s service) FetchConfigAndOp() {
 		vals := strings.Split(hostInfo, " ")
 		err = compareAppend(vals[0], []string{vals[1]})
 		if err != nil {
-			logrus.Errorf("rewrite hostsinfo error: %v", err)
+			s.log.Errorf("rewrite hostsinfo error: %v", err)
 			return
 		}
 	}
@@ -75,9 +75,9 @@ func (s service) FetchConfigAndOp() {
 			if err != nil {
 				return
 			}
-			err = RunExec(fmt.Sprintf("%s%s", s.rootPath, "/fluent-bit/bin/fluent-bit"), s.rootPath+"/fluent-bit/fluent-bit.conf")
+			err = RunExec(fmt.Sprintf("%s%s", s.rootPath, "/fluent-bit"), s.rootPath+"/fluent-bit.conf")
 			if err != nil {
-				logrus.Errorf("run fluent-bit exec error: %v\n", err)
+				s.log.Errorf("run fluent-bit exec error: %v\n", err)
 				return
 			}
 		}
@@ -91,16 +91,16 @@ func (s service) FetchConfigAndOp() {
 		if err != nil {
 			return
 		}
-		err = RunExec(fmt.Sprintf("%s%s", s.rootPath, "/fluent-bit/bin/fluent-bit"), s.rootPath+"/fluent-bit/fluent-bit.conf")
+		err = RunExec(fmt.Sprintf("%s%s", s.rootPath, "/fluent-bit"), s.rootPath+"/fluent-bit.conf")
 		if err != nil {
-			logrus.Errorf("run fluent-bit exec error: %v\n", err)
+			s.log.Errorf("run fluent-bit exec error: %v\n", err)
 		}
 		// 写入配置文件  注意hosts修改，配置信息增加项
 		// 远程单独修改operator为0
 		// TODO
 		_, err = cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
 		if err != nil {
-			logrus.Errorf("update beat operator error: %v", err)
+			s.log.Errorf("update beat operator error: %v", err)
 			return
 		}
 
@@ -109,25 +109,23 @@ func (s service) FetchConfigAndOp() {
 		if pid != "" {
 			err = RunKillApp(pid)
 			if err != nil {
-				logrus.Errorf("kill component error: %v", err)
+				s.log.Errorf("kill component error: %v", err)
 				return
 			}
 		}
 	} else {
-		logrus.Errorf("unknown operator: %v", resp.Operator)
+		s.log.Errorf("unknown operator: %v", resp.Operator)
 		return
 	}
 }
 
 func hotUpdate(spans []string, ip string, rootPath string) error {
-	err := os.WriteFile(rootPath+"/fluent-bit/fluent-bit.conf", []byte(AppendContent(spans[0], ip, rootPath)), 0644)
+	err := os.WriteFile(rootPath+"/fluent-bit.conf", []byte(AppendContent(spans[0], ip, rootPath)), 0644)
 	if err != nil {
-		logrus.Errorf("write fluent-bit config file error: %v", err)
 		return err
 	}
-	err = os.WriteFile(rootPath+"/fluent-bit/parsers.conf", []byte(spans[1]), 0644)
+	err = os.WriteFile(rootPath+"/parsers.conf", []byte(spans[1]), 0644)
 	if err != nil {
-		logrus.Errorf("write fluent-bit parsers file error: %v", err)
 		return err
 	}
 	return nil
@@ -172,7 +170,7 @@ func AppendContent(src string, ip, rootPath string) string {
 	for _, line := range lines {
 		if strings.Contains(line, "(insert)") {
 			fill := strings.Split(strings.TrimSpace(line), " ")[1]
-			newline := fmt.Sprintf("    DB %s/fluent-bit/db/%s.db\n", rootPath, fill)
+			newline := fmt.Sprintf("    DB %s/db/%s.db\n", rootPath, fill)
 			s += newline + fmt.Sprintf(filterBlock, fill)
 		} else {
 			s += line + "\n"

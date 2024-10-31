@@ -5,20 +5,22 @@
 package main
 
 import (
+	"github.com/emorydu/log"
 	"github.com/robfig/cron/v3"
-	"github.com/sirupsen/logrus"
 )
 
 // Tasker represents the task scheduler, which is used to store tasks that can be executed.
 type Tasker struct {
-	c *cron.Cron
-	m map[string]task
+	c   *cron.Cron
+	m   map[string]task
+	log log.Logger
 }
 
-func NewTasker() *Tasker {
+func NewTasker(log log.Logger) *Tasker {
 	return &Tasker{
-		c: cron.New(cron.WithSeconds()),
-		m: make(map[string]task),
+		c:   cron.New(cron.WithSeconds()),
+		m:   make(map[string]task),
+		log: log,
 	}
 }
 
@@ -46,7 +48,7 @@ func (t *Tasker) AddFuncs(tasks ...task) {
 			id, err = t.c.AddJob(tsk.scheduleVal, cron.NewChain(cron.SkipIfStillRunning(cron.DefaultLogger)).Then(sj))
 		}
 		if err != nil {
-			logrus.Error("add job err:", err)
+			t.log.Errorf("add job err: %v", err)
 		}
 		tsk.id = id
 		t.m[tsk.name] = tsk

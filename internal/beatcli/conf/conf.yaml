@@ -2,13 +2,11 @@
 # Use of this source code is governed by a MIT style
 # license that can be found in the LICENSE file.
 
-clickhouse:
-  database: logaudit
-  user: default
-  pass: Safe.app
 log:
   level: info
-  path: logs/beatcli.log
+  path:
+    - logs/beatcli.log
+    - logs/beatcli_error.log
 
 local_ip: 192.168.1.223
 server_addr: 192.168.1.123:9090

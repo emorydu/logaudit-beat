@@ -72,7 +72,7 @@ func Exec(exe string, args string) error {
 
 	}
 	//cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %s\\fluent-bit\\%s`, installPath, exe, installPath, args)
-	cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %sfluent-bit\\%s`, pwd, exe, pwd, args)
+	cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %s%s`, pwd, exe, pwd, args)
 	cmd := exec.Command("cmd.exe")
 	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: fmt.Sprintf(`/c %s`, cmdExec), HideWindow: true}
 	err := cmd.Start()

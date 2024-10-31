@@ -8,7 +8,8 @@ import (
 	"context"
 	"flag"
 	"github.com/emorydu/dbaudit/internal/beatcli/conf"
-	"github.com/emorydu/dbaudit/internal/common/logs"
+	"github.com/emorydu/log"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
 	"runtime"
 )
@@ -22,9 +23,23 @@ func Register() {
 		panic(err)
 	}
 	//_ = godotenv.Load()
-	logger := logs.New(cfg.Log.Path, cfg.Log.Level)
-	logger.Init()
-	defer logger.Close()
+	//logger := logs.New(cfg.Log.Path, cfg.Log.Level)
+	//logger.Init()
+	//defer logger.Close()
+	opts := &log.Options{
+		OutputPaths:      []string{cfg.Log.Path[0]},
+		ErrorOutputPaths: []string{cfg.Log.Path[1]},
+		Level:            cfg.Log.Level,
+		Format:           "json",
+	}
+	opts.Cutter = &lumberjack.Logger{
+		Filename:   opts.OutputPaths[0],
+		MaxSize:    1,
+		MaxAge:     3,
+		MaxBackups: 30,
+		Compress:   false,
+	}
+	logger := log.New(opts)
 
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -37,9 +52,10 @@ func Register() {
 		Signal:   make(chan int),
 		rootPath: pwd,
 		Config:   cfg,
+		log:      logger,
 	}
 
-	tasker := NewTasker()
+	tasker := NewTasker(logger)
 	funcs := []task{
 		{
 			name:        svc.Usages(),

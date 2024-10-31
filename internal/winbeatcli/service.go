@@ -8,6 +8,7 @@ import (
 	"context"
 	"github.com/emorydu/dbaudit/internal/beatcli/conf"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
+	"github.com/emorydu/log"
 )
 
 type service struct {
@@ -18,4 +19,5 @@ type service struct {
 	Signal   chan int
 	rootPath string
 	Config   *conf.Config
+	log      log.Logger
 }
