@@ -189,7 +189,6 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
     Name json
     Format json
 `)) {
-			// todo
 			ss := strings.ReplaceAll(parsersConf, fmt.Sprintf(`
 [PARSER]
     Name json
@@ -324,14 +323,13 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Exclude log .
 `, indexName, indexName)
 	} else {
-		//		filterBlock += fmt.Sprintf(`
-		//[FILTER]
-		//    Name grep
-		//    Match %s
-		//    Exclude log .
-		//
-		//`, indexName)
-		filterBlock += fmt.Sprintf(fBlock, indexName)
+		filterBlock += fmt.Sprintf(`
+[FILTER]
+    Name grep
+    Match %s
+    Exclude log .
+`, indexName)
+
 	}
 
 	outputBlock = fmt.Sprintf(`
