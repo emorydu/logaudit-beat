@@ -15,6 +15,7 @@ import (
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -120,11 +121,11 @@ func (s service) FetchConfigAndOp() {
 }
 
 func hotUpdate(spans []string, ip string, rootPath string) error {
-	err := os.WriteFile(rootPath+"/fluent-bit.conf", []byte(AppendContent(spans[0], ip, rootPath)), 0644)
+	err := os.WriteFile(filepath.Join(rootPath, "fluent-bit.conf"), []byte(AppendContent(spans[0], ip, rootPath)), 0644)
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(rootPath+"/parsers.conf", []byte(spans[1]), 0644)
+	err = os.WriteFile(filepath.Join(rootPath, "parsers.conf"), []byte(spans[1]), 0644)
 	if err != nil {
 		return err
 	}
