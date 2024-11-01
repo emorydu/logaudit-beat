@@ -3,6 +3,7 @@ module github.com/emorydu/dbaudit/internal/common
 go 1.23.2
 
 require (
+	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/shirou/gopsutil/v4 v4.24.9
@@ -14,6 +15,7 @@ require (
 	go.opentelemetry.io/otel v1.31.0
 	go.uber.org/goleak v1.3.0
 	go.uber.org/zap v1.27.0
+	golang.org/x/text v0.17.0
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.35.1
 )
@@ -45,7 +47,6 @@ require (
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/term v0.23.0 // indirect
-	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

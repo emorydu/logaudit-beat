@@ -1,0 +1,42 @@
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}
+{"L":"ERROR","T":"2024-10-31T21:01:02.033+0800","M":"check upgrade error: rpc error: code = Internal desc = check upgrade bitup failed:dial tcp 127.0.0.0:9000: connect: network is unreachable"}

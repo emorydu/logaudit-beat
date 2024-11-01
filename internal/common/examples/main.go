@@ -7,101 +7,85 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
+	"os"
+	"sync"
+	"time"
+
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
-	"io"
-	"os"
 )
 
+const (
+	sourceFilePath = "large_input.txt" // 源文件路径
+	targetFilePath = "utf8_output.txt" // 目标文件路径
+	interval       = 10 * time.Second  // 定时任务间隔
+)
+
+var mu sync.Mutex
+
 func main() {
-	// 源文件和目标文件
-	sourceFile := "hello.txt"
-	targetFile := "utf8_output.txt"
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
 
-	// 创建目标文件
-	outputFile, err := os.Create(targetFile)
-	if err != nil {
-		fmt.Println("Error creating target file:", err)
-		return
-	}
-	defer outputFile.Close()
-
-	// 创建文件监视器
-	watcher, err := fsnotify.NewWatcher()
-	if err != nil {
-		fmt.Println("Error creating watcher:", err)
-		return
-	}
-	defer watcher.Close()
-
-	// 添加源文件监视
-	err = watcher.Add(sourceFile)
-	if err != nil {
-		fmt.Println("Error adding file to watcher:", err)
-		return
-	}
-
-	// 打开源文件
-	inputFile, err := os.Open(sourceFile)
-	if err != nil {
-		fmt.Println("Error opening source file:", err)
-		return
-	}
-	defer inputFile.Close()
-
-	// 创建缓冲写入器
-	writer := bufio.NewWriter(outputFile)
-
-	// 记录文件指针位置
-	var lastPosition int64
+	var lastLine int
 
 	for {
 		select {
-		case event, ok := <-watcher.Events:
-			if !ok {
-				return
+		case <-ticker.C:
+			newLine, err := convertFileEncoding(sourceFilePath, targetFilePath, lastLine)
+			if err != nil {
+				fmt.Println("Error converting file:", err)
+			} else {
+				lastLine = newLine // 更新上次读取的行号
 			}
-			if event.Op&fsnotify.Write == fsnotify.Write {
-				// 文件被写入，读取新内容
-				newPosition, err := inputFile.Seek(0, io.SeekEnd)
-				if err != nil {
-					fmt.Println("Error seeking in file:", err)
-					continue
-				}
-				if newPosition > lastPosition {
-					// 从上次位置读取新内容
-					if _, err := inputFile.Seek(lastPosition, io.SeekStart); err != nil {
-						fmt.Println("Error seeking to last position:", err)
-						continue
-					}
-
-					// 使用 GBK 解码器
-					decoder := simplifiedchinese.GBK.NewDecoder()
-					reader := transform.NewReader(inputFile, decoder)
-
-					// 读取新内容并写入目标文件
-					scanner := bufio.NewScanner(reader)
-					for scanner.Scan() {
-						line := scanner.Text()
-						_, err = writer.WriteString(line + "\n")
-						if err != nil {
-							fmt.Println("Error writing to file:", err)
-							return
-						}
-					}
-					lastPosition = newPosition
-					// 刷新写入器
-					if err := writer.Flush(); err != nil {
-						fmt.Println("Error flushing writer:", err)
-					}
-				}
-			}
-		case err, ok := <-watcher.Errors:
-			if !ok {
-				return
-			}
-			fmt.Println("Error:", err)
 		}
 	}
+}
+func convertFileEncoding(sourceFile string, targetFile string, lastLine int) (int, error) {
+
+	inputFile, err := os.Open(sourceFile)
+	if err != nil {
+		return lastLine, fmt.Errorf("error opening source file: %w", err)
+	}
+	defer inputFile.Close()
+
+	outputFile, err := os.OpenFile(targetFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return lastLine, fmt.Errorf("error opening target file: %w", err)
+	}
+	defer outputFile.Close()
+
+	decoder := simplifiedchinese.GBK.NewDecoder()
+	reader := transform.NewReader(inputFile, decoder)
+
+	writer := bufio.NewWriter(outputFile)
+
+	scanner := bufio.NewScanner(reader)
+	currentLine := 0
+
+	for scanner.Scan() {
+		if currentLine < lastLine {
+			currentLine++
+			continue
+		}
+
+		line := scanner.Text()
+		_, err := writer.WriteString(line + "\n")
+		if err != nil {
+			return lastLine, fmt.Errorf("error writing to target file: %w", err)
+		}
+		currentLine++
+	}
+
+	if err := writer.Flush(); err != nil {
+		return lastLine, fmt.Errorf("error flushing writer: %w", err)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return lastLine, fmt.Errorf("error reading source file: %w", err)
+	}
+
+	fmt.Printf("Wrote %d new lines to target file.\n", currentLine-lastLine)
+
+	return currentLine, nil
 }

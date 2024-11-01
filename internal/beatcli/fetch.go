@@ -92,7 +92,6 @@ func (s service) FetchConfigAndOp() {
 		}
 
 	} else if resp.Operator == common.AgentOperatorStopped {
-		// 存在则停止
 		if pid != "" {
 			err = RunKillApp(pid)
 			if err != nil {
