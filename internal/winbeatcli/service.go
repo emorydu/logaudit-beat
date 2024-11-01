@@ -9,6 +9,7 @@ import (
 	"github.com/emorydu/dbaudit/internal/beatcli/conf"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/emorydu/log"
+	"github.com/robfig/cron/v3"
 )
 
 type service struct {
@@ -20,4 +21,15 @@ type service struct {
 	rootPath string
 	Config   *conf.Config
 	log      log.Logger
+
+	agentUpgrade int
+	bitUpgrade   int
+}
+
+func (s service) scheduleJob(name string) cron.Job {
+	if name == "checkUpgrade" {
+		return &Upgrade{s: s}
+	}
+
+	return nil
 }

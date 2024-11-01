@@ -20,6 +20,11 @@ import (
 const fluentBit = "ps aux|grep fluent-bit|grep -v grep|awk '{print $2}'"
 
 func (s service) FetchConfigAndOp() {
+	if s.agentUpgrade != 0 || s.bitUpgrade != 0 {
+		s.log.Info("component upgrading....")
+		return
+	}
+
 	s.log.Info("FetchConfigAndOp startup....")
 	cli, clo, err := client.NewAuditBeatClient(s.Config.ServerAddr)
 	if err != nil {

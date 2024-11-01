@@ -17,6 +17,25 @@ service AuditBeatService {
 
   rpc UsageStatus(UsageStatusRequest) returns (google.protobuf.Empty) {}
   rpc Updated(UpdatedRequest) returns (google.protobuf.Empty) {}
+  rpc CheckUpgrade(CheckUpgradeRequest) returns (CheckUpgradeResponse) {}
+  rpc Binary(BinaryRequest) returns (BinaryResponse) {}
+}
+
+message BinaryRequest {
+  string path = 1;
+}
+
+message BinaryResponse {
+  bytes data = 1;
+}
+
+message CheckUpgradeRequest {
+  string ip = 1;
+}
+
+message CheckUpgradeResponse {
+  string version = 1;
+  int32 bit_up = 2;
 }
 
 

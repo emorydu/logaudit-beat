@@ -28,6 +28,8 @@ const (
 	AuditBeatService_Download_FullMethodName      = "/auditbeat.AuditBeatService/Download"
 	AuditBeatService_UsageStatus_FullMethodName   = "/auditbeat.AuditBeatService/UsageStatus"
 	AuditBeatService_Updated_FullMethodName       = "/auditbeat.AuditBeatService/Updated"
+	AuditBeatService_CheckUpgrade_FullMethodName  = "/auditbeat.AuditBeatService/CheckUpgrade"
+	AuditBeatService_Binary_FullMethodName        = "/auditbeat.AuditBeatService/Binary"
 )
 
 // AuditBeatServiceClient is the client API for AuditBeatService service.
@@ -38,6 +40,8 @@ type AuditBeatServiceClient interface {
 	Download(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	UsageStatus(ctx context.Context, in *UsageStatusRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	Updated(ctx context.Context, in *UpdatedRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CheckUpgrade(ctx context.Context, in *CheckUpgradeRequest, opts ...grpc.CallOption) (*CheckUpgradeResponse, error)
+	Binary(ctx context.Context, in *BinaryRequest, opts ...grpc.CallOption) (*BinaryResponse, error)
 }
 
 type auditBeatServiceClient struct {
@@ -84,6 +88,24 @@ func (c *auditBeatServiceClient) Updated(ctx context.Context, in *UpdatedRequest
 	return out, nil
 }
 
+func (c *auditBeatServiceClient) CheckUpgrade(ctx context.Context, in *CheckUpgradeRequest, opts ...grpc.CallOption) (*CheckUpgradeResponse, error) {
+	out := new(CheckUpgradeResponse)
+	err := c.cc.Invoke(ctx, AuditBeatService_CheckUpgrade_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *auditBeatServiceClient) Binary(ctx context.Context, in *BinaryRequest, opts ...grpc.CallOption) (*BinaryResponse, error) {
+	out := new(BinaryResponse)
+	err := c.cc.Invoke(ctx, AuditBeatService_Binary_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuditBeatServiceServer is the server API for AuditBeatService service.
 // All implementations should embed UnimplementedAuditBeatServiceServer
 // for forward compatibility
@@ -92,6 +114,8 @@ type AuditBeatServiceServer interface {
 	Download(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
 	UsageStatus(context.Context, *UsageStatusRequest) (*emptypb.Empty, error)
 	Updated(context.Context, *UpdatedRequest) (*emptypb.Empty, error)
+	CheckUpgrade(context.Context, *CheckUpgradeRequest) (*CheckUpgradeResponse, error)
+	Binary(context.Context, *BinaryRequest) (*BinaryResponse, error)
 }
 
 // UnimplementedAuditBeatServiceServer should be embedded to have forward compatible implementations.
@@ -109,6 +133,12 @@ func (UnimplementedAuditBeatServiceServer) UsageStatus(context.Context, *UsageSt
 }
 func (UnimplementedAuditBeatServiceServer) Updated(context.Context, *UpdatedRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Updated not implemented")
+}
+func (UnimplementedAuditBeatServiceServer) CheckUpgrade(context.Context, *CheckUpgradeRequest) (*CheckUpgradeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CheckUpgrade not implemented")
+}
+func (UnimplementedAuditBeatServiceServer) Binary(context.Context, *BinaryRequest) (*BinaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Binary not implemented")
 }
 
 // UnsafeAuditBeatServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -194,6 +224,42 @@ func _AuditBeatService_Updated_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuditBeatService_CheckUpgrade_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckUpgradeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuditBeatServiceServer).CheckUpgrade(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuditBeatService_CheckUpgrade_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuditBeatServiceServer).CheckUpgrade(ctx, req.(*CheckUpgradeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuditBeatService_Binary_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BinaryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuditBeatServiceServer).Binary(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuditBeatService_Binary_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuditBeatServiceServer).Binary(ctx, req.(*BinaryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuditBeatService_ServiceDesc is the grpc.ServiceDesc for AuditBeatService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -216,6 +282,14 @@ var AuditBeatService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Updated",
 			Handler:    _AuditBeatService_Updated_Handler,
+		},
+		{
+			MethodName: "CheckUpgrade",
+			Handler:    _AuditBeatService_CheckUpgrade_Handler,
+		},
+		{
+			MethodName: "Binary",
+			Handler:    _AuditBeatService_Binary_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

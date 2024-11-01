@@ -82,6 +82,7 @@ func (r *repository) Update(ctx context.Context, ip string) error {
 	q := "ALTER TABLE monitor UPDATE operator = 0 WHERE ip = ?"
 	return r.db.Exec(ctx, q, ip)
 }
+
 func (r *repository) QueryMonitorInfo(ctx context.Context, ip string) (int, error) {
 	q := `
 SELECT operator FROM monitor WHERE ip = ?;

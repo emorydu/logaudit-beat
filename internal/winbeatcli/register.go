@@ -67,6 +67,12 @@ func Register() {
 			scheduleVal: "@every 15s",
 			invoke:      svc.FetchConfigAndOp,
 		},
+		{
+			name:        svc.CheckUpgradeTsk(),
+			scheduleVal: "@every 20s",
+			delay:       true,
+			jobInvoke:   svc.scheduleJob,
+		},
 	}
 	tasker.AddFuncs(funcs...)
 	tasker.Start()

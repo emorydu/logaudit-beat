@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/emorydu/dbaudit/internal/auditbeat/conf"
 	"github.com/emorydu/dbaudit/internal/auditbeat/model"
 	"github.com/emorydu/dbaudit/internal/auditbeat/repository"
 	"github.com/emorydu/dbaudit/internal/common"
@@ -56,21 +57,29 @@ type FetchService interface {
 	QueryMonitorInfo(context.Context, string) (int, error)
 	Updated(context.Context, string) error
 	Daemon()
+
+	Version() string
 }
 
 type fetchService struct {
 	// todo
 	ctx  context.Context
 	repo repository.Repository
+	cfg  *conf.Config
 }
 
 var _ FetchService = (*fetchService)(nil)
 
-func NewFetchService(ctx context.Context, repo repository.Repository) FetchService {
+func NewFetchService(ctx context.Context, repo repository.Repository, conf *conf.Config) FetchService {
 	return &fetchService{
 		ctx:  ctx,
 		repo: repo,
+		cfg:  conf,
 	}
+}
+
+func (f *fetchService) Version() string {
+	return f.cfg.Version
 }
 
 func (f *fetchService) Daemon() {

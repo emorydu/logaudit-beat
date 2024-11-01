@@ -14,6 +14,10 @@ import (
 )
 
 func (s service) UsageStatus() {
+	if s.agentUpgrade != 0 || s.bitUpgrade != 0 {
+		s.log.Info("component upgrading....")
+		return
+	}
 	s.log.Info("UsageStatus startup....")
 	cli, clo, err := client.NewAuditBeatClient(s.Config.ServerAddr)
 	if err != nil {

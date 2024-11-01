@@ -6,13 +6,13 @@ package ports
 
 import (
 	"context"
-	"fmt"
 	"github.com/emorydu/dbaudit/internal/auditbeat/service"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
+	"os"
 	"time"
 )
 
@@ -72,8 +72,37 @@ func logError(err error) error {
 func (s GrpcServer) Updated(ctx context.Context, req *auditbeat.UpdatedRequest) (*emptypb.Empty, error) {
 	err := s.svc.Updated(ctx, req.GetIp())
 	if err != nil {
-		fmt.Println("Update Operator error:", err)
 		return nil, status.Errorf(codes.Internal, "error update monitor operator info failed: %v", err)
 	}
 	return &emptypb.Empty{}, err
+}
+
+func (s GrpcServer) CheckUpgrade(ctx context.Context, req *auditbeat.CheckUpgradeRequest) (*auditbeat.CheckUpgradeResponse, error) {
+	version := s.svc.Version()
+	operator, err := s.svc.QueryMonitorInfo(ctx, req.GetIp())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "check upgrade bitup failed:%v", err)
+	}
+
+	bitup := int32(0)
+	if operator == 3 {
+		bitup = 1
+	}
+
+	return &auditbeat.CheckUpgradeResponse{
+		Version: version,
+		BitUp:   bitup,
+	}, nil
+}
+
+func (s GrpcServer) Binary(ctx context.Context, req *auditbeat.BinaryRequest) (*auditbeat.BinaryResponse, error) {
+	path := "/root/go/src/github.com/emorydu/" + req.GetPath()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "binary read error: %v", err)
+	}
+
+	return &auditbeat.BinaryResponse{
+		Data: data,
+	}, nil
 }
