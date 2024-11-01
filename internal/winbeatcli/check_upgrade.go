@@ -91,7 +91,7 @@ func (s service) CheckUpgradeTsk() string {
 }
 
 const (
-	Version     = "v1.0.0"
+	Version     = "v0.0.9-test"
 	beatCliName = "beatcli.exe"
 	bitName     = "fluent-bit.exe"
 )
