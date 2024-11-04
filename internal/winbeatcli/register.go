@@ -11,6 +11,7 @@ import (
 	"github.com/emorydu/log"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
+	"path/filepath"
 	"runtime"
 )
 
@@ -41,16 +42,17 @@ func Register() {
 	}
 	logger := log.New(opts)
 
-	pwd, err := os.Getwd()
+	executable, err := os.Executable()
 	if err != nil {
 		panic(err)
 	}
+	executablePath := filepath.Dir(executable)
 	svc := service{
 		ctx:      context.Background(),
 		os:       runtime.GOOS,
 		Updated:  new(int32),
 		Signal:   make(chan int),
-		rootPath: pwd,
+		rootPath: executablePath,
 		Config:   cfg,
 		log:      logger,
 	}

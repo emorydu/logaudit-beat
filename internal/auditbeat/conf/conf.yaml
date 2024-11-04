@@ -4,7 +4,7 @@
 
 clickhouse:
   addrs:
-    - 127.0.0.0:9009
+    - 127.0.0.1:9000
   database: logaudit
   user: default
   pass: Safe.app

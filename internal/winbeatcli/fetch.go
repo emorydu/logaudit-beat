@@ -73,7 +73,7 @@ func (s service) FetchConfigAndOp() {
 			if err != nil {
 				return
 			}
-			err = systemutil.Exec(fluentBit, `fluent-bit.conf`)
+			err = systemutil.Exec(fluentBit, `fluent-bit.conf`, s.rootPath)
 			if err != nil {
 				s.log.Errorf("run fluent-bit exec error: %v\n", err)
 				return
@@ -98,7 +98,7 @@ func (s service) FetchConfigAndOp() {
 				s.log.Errorf("update beat operator error: %v", err)
 				return
 			}
-			err = systemutil.Exec(fluentBit, `fluent-bit.conf`)
+			err = systemutil.Exec(fluentBit, `fluent-bit.conf`, s.rootPath)
 			if err != nil {
 				s.log.Errorf("run fluent-bit exec error: %v\n", err)
 			}

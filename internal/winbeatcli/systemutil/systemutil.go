@@ -57,11 +57,11 @@ func GetInstallPath() (string, error) {
 	return installPath, nil
 }
 
-func Exec(exe string, args string) error {
+func Exec(exe string, args string, rootPath string) error {
 
-	pwd, _ := os.Getwd()
-	values := strings.Split(pwd, `\`)
-	pwd = ""
+	//pwd, _ := os.Getwd()
+	values := strings.Split(rootPath, `\`)
+	pwd := ""
 	for _, v := range values {
 		if strings.Contains(v, " ") {
 			pwd += fmt.Sprintf(`"%s"\\`, v)
@@ -73,6 +73,7 @@ func Exec(exe string, args string) error {
 	}
 	//cmdExec := fmt.Sprintf(`%s\\fluent-bit\\bin\\%s -c %s\\fluent-bit\\%s`, installPath, exe, installPath, args)
 	cmdExec := fmt.Sprintf(`%s%s -c %s%s`, pwd, exe, pwd, args)
+	fmt.Println("CMDEXEC:", cmdExec)
 	cmd := exec.Command("cmd.exe")
 	cmd.SysProcAttr = &syscall.SysProcAttr{CmdLine: fmt.Sprintf(`/c %s`, cmdExec), HideWindow: true}
 	err := cmd.Start()
