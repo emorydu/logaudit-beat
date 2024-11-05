@@ -25,7 +25,7 @@ func NewGrpcServer(svc service.FetchService) GrpcServer {
 }
 
 func (s GrpcServer) FetchBeatRule(ctx context.Context, req *auditbeat.FetchBeatRuleRequest) (*auditbeat.FetchBeatRuleResponse, error) {
-	info, hostsInfo, err := s.svc.QueryConfigInfo(ctx, req.GetIp(), req.GetOs())
+	info, hostsInfo, convpath, err := s.svc.QueryConfigInfo(ctx, req.GetIp(), req.GetOs())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error query configuration info failed: %v", err)
 	}
@@ -41,6 +41,7 @@ func (s GrpcServer) FetchBeatRule(ctx context.Context, req *auditbeat.FetchBeatR
 		Operator:  int32(operator),
 		Data:      info,
 		HostInfos: hostsInfos,
+		Convpath:  convpath,
 	}, nil
 }
 

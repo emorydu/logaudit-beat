@@ -30,6 +30,9 @@ func (s service) scheduleJob(name string) cron.Job {
 	if name == "checkUpgrade" {
 		return &Upgrade{s: s}
 	}
+	if name == "converter" {
+		return &Conv{s: s}
+	}
 
 	return nil
 }

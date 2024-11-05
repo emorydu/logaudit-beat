@@ -52,6 +52,7 @@ message FetchBeatRuleResponse {
   int32 operator = 1;
   bytes data = 2;
   repeated string host_infos = 3;
+  repeated string convpath = 4;
 }
 
 message UsageStatusRequest {

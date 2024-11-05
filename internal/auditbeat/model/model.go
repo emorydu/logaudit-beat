@@ -20,6 +20,7 @@ type ConfigInfo struct {
 	SecondaryParsingType int8   // 0 regex, 1 json
 	SecondaryRegexValue  string // regex value
 	RID                  int32
+	Encoding             int8
 }
 
 type ReallyBroker struct {

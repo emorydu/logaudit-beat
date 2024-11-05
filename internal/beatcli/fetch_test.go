@@ -52,3 +52,7 @@ func TestAppendContent(t *testing.T) {
 `, "192.168.1.32", "")
 	fmt.Println(string(content))
 }
+
+func Test_diffPosition(t *testing.T) {
+	diffPosition("", []string{"/var/logs/command.log"})
+}

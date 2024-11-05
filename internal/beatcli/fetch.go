@@ -47,6 +47,16 @@ func (s service) FetchConfigAndOp() {
 		s.log.Errorf("fetch beat rule error: %v", err)
 		return
 	}
+	/*
+		todo：
+			1. 将得到的convpath信息写入position文件中 格式：######originpath######originpath.utf8######0
+			2. conv定时器查询该文件中的信息进行转换
+	*/
+	err = diffPosition(s.rootPath, resp.Convpath)
+	if err != nil {
+		s.log.Errorf("diff position file error: %v", err)
+		return
+	}
 
 	hostsInfos := resp.GetHostInfos()
 	for _, hostInfo := range hostsInfos {
@@ -103,6 +113,78 @@ func (s service) FetchConfigAndOp() {
 		s.log.Errorf("unknown operator: %v", resp.Operator)
 		return
 	}
+}
+
+func diffPosition(rootPath string, convpath []string) error {
+	// todo
+	// todo: emmm convpath item contains * char
+	positionFile := rootPath + "position"
+	m := make(map[string]struct{})
+	for _, path := range convpath {
+		// todo
+		m[fmt.Sprintf(fmt.Sprintf("%s######%s.utf8######", path, path))] = struct{}{}
+	}
+
+	existing := make([]string, 0)
+	pf, err := os.Open(positionFile)
+	if err != nil {
+		return err
+	}
+	scanner := bufio.NewScanner(pf)
+	for scanner.Scan() {
+		existing = append(existing, strings.TrimSpace(scanner.Text()))
+
+	}
+	if err = scanner.Err(); err != nil {
+		return err
+	}
+	pf.Close()
+
+	output, err := os.OpenFile(positionFile, os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return err
+	}
+	defer output.Close()
+
+	writer := bufio.NewWriter(output)
+
+	for item := range m {
+		if !contains(existing, item) {
+			_, err = writer.WriteString(fmt.Sprintf("%s%d", item, 0) + "\n")
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, item := range existing {
+		spans := strings.Split(item, "######")
+		if len(spans) != 3 {
+			return fmt.Errorf("position file %s contains invalid syntax", positionFile)
+		}
+		if _, exists := m[fmt.Sprintf("%s######%s######", spans[0], spans[1])]; exists {
+			_, err = writer.WriteString(item + "\n")
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if err = writer.Flush(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func contains(l []string, item string) bool {
+	for _, v := range l {
+		if strings.HasPrefix(v, item) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func hotUpdate(spans []string, ip string, rootPath string) error {

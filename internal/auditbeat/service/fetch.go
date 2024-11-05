@@ -52,7 +52,7 @@ type FetchService interface {
 		common.OperatingSystemType,
 	) ([]byte, error)
 
-	QueryConfigInfo(context.Context, string, string) ([]byte, map[string]struct{}, error)
+	QueryConfigInfo(context.Context, string, string) ([]byte, map[string]struct{}, []string, error)
 	CreateOrModUsage(ctx context.Context, ip string, cpuUse, memUse float64, status int, timestamp int64) error
 	QueryMonitorInfo(context.Context, string) (int, error)
 	Updated(context.Context, string) error
@@ -143,14 +143,14 @@ const (
 `
 )
 
-func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]byte, map[string]struct{}, error) {
+func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]byte, map[string]struct{}, []string, error) {
 
 	info, err := f.repo.FetchConfInfo(ctx, ip)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if len(info) == 0 {
-		return nil, nil, fmt.Errorf("ip: %s not fetch config infos", ip)
+		return nil, nil, nil, fmt.Errorf("ip: %s not fetch config infos", ip)
 	}
 
 	inoutBuffer := new(bytes.Buffer)
@@ -164,6 +164,8 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 	hostsInfo := make(map[string]struct{})
 
 	tmpJsonParser := ""
+
+	convpath := make([]string, 0)
 
 	for _, v := range info {
 		if v.Check == stopped {
@@ -179,7 +181,15 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 			MDomain: domain,
 		})
 		hostsInfo[fmt.Sprintf("%s %s", broker.DVal, broker.DDomain)] = struct{}{}
-		bitConf, parsersConf := builderSingleConf2(v.AgentPath, v.IndexName, fmt.Sprintf("%s:%d", broker.DDomain, broker.DPort), v.MultiParse, v.SecondaryState,
+		// todo
+		p := v.AgentPath
+		if v.Encoding == 1 { // gbk
+			convpath = append(convpath, v.AgentPath) // original path
+			if !strings.HasSuffix(p, "*") {
+				p = fmt.Sprintf("%s.utf8", p)
+			}
+		}
+		bitConf, parsersConf := builderSingleConf2(p, v.IndexName, fmt.Sprintf("%s:%d", broker.DDomain, broker.DPort), v.MultiParse, v.SecondaryState,
 			v.Secondary, v.ParseType, v.SecondaryParsingType, v.RegexParamValue, v.SecondaryRegexValue, v.RID)
 
 		inoutBuffer.Write([]byte(bitConf))
@@ -220,7 +230,7 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 	inoutBuffer.Write([]byte(common.InParserConn))
 	inoutBuffer.Write(parserBuffer.Bytes())
 
-	return inoutBuffer.Bytes(), hostsInfo, nil
+	return inoutBuffer.Bytes(), hostsInfo, convpath, nil
 }
 
 const (

@@ -130,7 +130,8 @@ SELECT ccr.srcIp,
        pr.secondaryState,
        pr.parseType2,
        pr.param1_2,
-       pr.rid
+       pr.rid,
+       ccf.encoding
 FROM collect_conf AS ccf
          RIGHT JOIN collect_conf_relation AS ccr ON ccf.srcIp = ccr.srcIp
          LEFT JOIN parsing_rule AS pr ON ccr.rid = pr.rid 
@@ -143,7 +144,7 @@ WHERE ccr.agentPath != '' AND ccr.srcIp = ?;
 
 	for rows.Next() {
 		item := model.ConfigInfo{}
-		err := rows.Scan(&item.IP, &item.MappingStatus, &item.MappingIP, &item.KafkaPort, &item.AgentPath, &item.MultiParse, &item.RegexParamValue, &item.Check, &item.ParseType, &item.IndexName, &item.Secondary, &item.SecondaryState, &item.SecondaryParsingType, &item.SecondaryRegexValue, &item.RID)
+		err := rows.Scan(&item.IP, &item.MappingStatus, &item.MappingIP, &item.KafkaPort, &item.AgentPath, &item.MultiParse, &item.RegexParamValue, &item.Check, &item.ParseType, &item.IndexName, &item.Secondary, &item.SecondaryState, &item.SecondaryParsingType, &item.SecondaryRegexValue, &item.RID, &item.Encoding)
 		if err != nil {
 			return nil, err
 		}
