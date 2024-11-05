@@ -54,5 +54,8 @@ func TestAppendContent(t *testing.T) {
 }
 
 func Test_diffPosition(t *testing.T) {
-	diffPosition("", []string{"/var/logs/command.log"})
+	err := diffPosition("", []string{"/Users/emory/go/src/github.com/dbaudit-beat/internal/beatcli/testing*"})
+	if err != nil {
+		t.Fatal(err)
+	}
 }

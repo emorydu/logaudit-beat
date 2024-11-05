@@ -69,26 +69,26 @@ func Register() {
 
 	tasker := NewTasker(logger)
 	funcs := []task{
-		//{
-		//	name:        svc.Usages(),
-		//	scheduleVal: "@every 10s",
-		//	invoke:      svc.UsageStatus,
-		//},
-		//{
-		//	name:        svc.Fetch(),
-		//	scheduleVal: "@every 15s",
-		//	invoke:      svc.FetchConfigAndOp,
-		//},
-		//
-		//{
-		//	name:        svc.CheckUpgradeTsk(),
-		//	scheduleVal: "@every 20s",
-		//	delay:       true,
-		//	jobInvoke:   svc.scheduleJob,
-		//},
+		{
+			name:        svc.Usages(),
+			scheduleVal: "@every 10s",
+			invoke:      svc.UsageStatus,
+		},
+		{
+			name:        svc.Fetch(),
+			scheduleVal: "@every 15s",
+			invoke:      svc.FetchConfigAndOp,
+		},
+
+		{
+			name:        svc.CheckUpgradeTsk(),
+			scheduleVal: "@every 20s",
+			delay:       true,
+			jobInvoke:   svc.scheduleJob,
+		},
 		{
 			name:        svc.Converter(),
-			scheduleVal: "@every 30s",
+			scheduleVal: "@every 40s",
 			delay:       true,
 			jobInvoke:   svc.scheduleJob,
 		},

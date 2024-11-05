@@ -181,12 +181,13 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 			MDomain: domain,
 		})
 		hostsInfo[fmt.Sprintf("%s %s", broker.DVal, broker.DDomain)] = struct{}{}
-		// todo
 		p := v.AgentPath
 		if v.Encoding == 1 { // gbk
 			convpath = append(convpath, v.AgentPath) // original path
 			if !strings.HasSuffix(p, "*") {
 				p = fmt.Sprintf("%s.utf8", p)
+			} else {
+				p = p[:len(p)-len("*")] + "utf8*"
 			}
 		}
 		bitConf, parsersConf := builderSingleConf2(p, v.IndexName, fmt.Sprintf("%s:%d", broker.DDomain, broker.DPort), v.MultiParse, v.SecondaryState,

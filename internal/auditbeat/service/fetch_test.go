@@ -13,6 +13,14 @@ import (
 	"time"
 )
 
+func TestSuffixStar(t *testing.T) {
+	s := "/var/logs/command*"
+	fmt.Println(strings.HasSuffix(s, "*"))
+	s = s[:len(s)-len("*")] + "utf8*"
+	fmt.Println(s)
+
+}
+
 //func TestBuilderSingleConf(t *testing.T) {
 //
 //	var info = []model.ConfigInfo{

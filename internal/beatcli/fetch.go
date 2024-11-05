@@ -8,12 +8,15 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/emorydu/dbaudit/internal/common"
 	"github.com/emorydu/dbaudit/internal/common/client"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
+	"github.com/emorydu/dbaudit/internal/common/utils"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -40,18 +43,13 @@ func (s service) FetchConfigAndOp() {
 		Ip: s.Config.LocalIP,
 	})
 	if err != nil {
-		// todo
 		if strings.Contains(err.Error(), "connect: connection refused") {
 			RunKillApp(pid)
 		}
 		s.log.Errorf("fetch beat rule error: %v", err)
 		return
 	}
-	/*
-		todo：
-			1. 将得到的convpath信息写入position文件中 格式：######originpath######originpath.utf8######0
-			2. conv定时器查询该文件中的信息进行转换
-	*/
+
 	err = diffPosition(s.rootPath, resp.Convpath)
 	if err != nil {
 		s.log.Errorf("diff position file error: %v", err)
@@ -116,13 +114,40 @@ func (s service) FetchConfigAndOp() {
 }
 
 func diffPosition(rootPath string, convpath []string) error {
-	// todo
-	// todo: emmm convpath item contains * char
-	positionFile := rootPath + "position"
+	positionFile := filepath.Join(rootPath, "position")
 	m := make(map[string]struct{})
+
+	var err error
+
 	for _, path := range convpath {
-		// todo
-		m[fmt.Sprintf(fmt.Sprintf("%s######%s.utf8######", path, path))] = struct{}{}
+		if !strings.HasSuffix(path, "*") {
+			m[fmt.Sprintf(fmt.Sprintf("%s######%s.utf8######", path, path))] = struct{}{}
+		} else {
+			path = path[:len(path)-len("*")]
+			err = utils.EnsureDir(path + "utf8")
+			if err != nil && !errors.Is(err, utils.ErrAlreadyExists) {
+				return err
+			}
+
+			err = filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
+				// todo sub-dir files...
+				if !info.IsDir() {
+					fmt.Println(p)
+					pp := filepath.Join(path+"utf8", info.Name()+".utf8")
+					m[fmt.Sprintf(fmt.Sprintf("%s######%s######", p, pp))] = struct{}{}
+				}
+
+				return nil
+			})
+
+		}
+
+	}
+	if err != nil {
+		return err
 	}
 
 	existing := make([]string, 0)
