@@ -53,6 +53,10 @@ func (c *Conv) Run() {
 
 	wg.Wait()
 
+	if strings.TrimSpace(*content) == "" {
+		return
+	}
+	
 	err = os.WriteFile(positionpath, []byte(*content), 0644)
 	if err != nil {
 		c.s.log.Errorf("error rewrite position file: %v", err)

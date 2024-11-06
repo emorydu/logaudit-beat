@@ -8,6 +8,7 @@ import (
 	"context"
 	"flag"
 	"github.com/emorydu/dbaudit/internal/beatcli/conf"
+	"github.com/emorydu/dbaudit/internal/common/utils"
 	"github.com/emorydu/log"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
@@ -46,7 +47,17 @@ func Register() {
 	if err != nil {
 		panic(err)
 	}
+
 	executablePath := filepath.Dir(executable)
+	//exists := utils.FileExists(executablePath + "/position")
+	exists := utils.FileExists(filepath.Join(executablePath, "position"))
+	if !exists {
+		pf, err := os.Create(filepath.Join(executablePath, "position"))
+		if err != nil {
+			panic(err)
+		}
+		_ = pf.Close()
+	}
 	svc := service{
 		ctx:      context.Background(),
 		os:       runtime.GOOS,
@@ -72,6 +83,12 @@ func Register() {
 		{
 			name:        svc.CheckUpgradeTsk(),
 			scheduleVal: "@every 20s",
+			delay:       true,
+			jobInvoke:   svc.scheduleJob,
+		},
+		{
+			name:        svc.Converter(),
+			scheduleVal: "@every 40s",
 			delay:       true,
 			jobInvoke:   svc.scheduleJob,
 		},

@@ -160,7 +160,7 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 
 	domain := "logaudit"
 	port := 9092
-	val := "192.168.1.123"
+	val := "192.168.1.124"
 	hostsInfo := make(map[string]struct{})
 
 	tmpJsonParser := ""
