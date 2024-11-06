@@ -3,90 +3,82 @@
 // // license that can be found in the LICENSE file.
 package main
 
-//
-//import (
-//	"bufio"
-//	"fmt"
-//	"os"
-//	"sync"
-//	"time"
-//
-//	"golang.org/x/text/encoding/simplifiedchinese"
-//	"golang.org/x/text/transform"
-//)
-//
-//const (
-//	sourceFilePath = "large_input.txt" // 源文件路径
-//	targetFilePath = "utf8_output.txt" // 目标文件路径
-//	interval       = 10 * time.Second  // 定时任务间隔
-//)
-//
-//var mu sync.Mutex
-//
-//func main() {
-//	ticker := time.NewTicker(interval)
-//	defer ticker.Stop()
-//
-//	var lastLine int
-//
-//	for {
-//		select {
-//		case <-ticker.C:
-//			newLine, err := convertFileEncoding(sourceFilePath, targetFilePath, lastLine)
-//			if err != nil {
-//				fmt.Println("Error converting file:", err)
-//			} else {
-//				lastLine = newLine // 更新上次读取的行号
-//			}
-//		}
-//	}
-//}
-//func convertFileEncoding(sourceFile string, targetFile string, lastLine int) (int, error) {
-//
-//	inputFile, err := os.Open(sourceFile)
-//	if err != nil {
-//		return lastLine, fmt.Errorf("error opening source file: %w", err)
-//	}
-//	defer inputFile.Close()
-//
-//	outputFile, err := os.OpenFile(targetFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
-//	if err != nil {
-//		return lastLine, fmt.Errorf("error opening target file: %w", err)
-//	}
-//	defer outputFile.Close()
-//
-//	decoder := simplifiedchinese.GBK.NewDecoder()
-//	reader := transform.NewReader(inputFile, decoder)
-//
-//	writer := bufio.NewWriter(outputFile)
-//
-//	scanner := bufio.NewScanner(reader)
-//	currentLine := 0
-//
-//	for scanner.Scan() {
-//		if currentLine < lastLine {
-//			currentLine++
-//			continue
-//		}
-//
-//		line := scanner.Text()
-//		fmt.Println("Line:", line)
-//		_, err := writer.WriteString(line + "\n")
-//		if err != nil {
-//			return lastLine, fmt.Errorf("error writing to target file: %w", err)
-//		}
-//		currentLine++
-//	}
-//
-//	if err := writer.Flush(); err != nil {
-//		return lastLine, fmt.Errorf("error flushing writer: %w", err)
-//	}
-//
-//	if err := scanner.Err(); err != nil {
-//		return lastLine, fmt.Errorf("error reading source file: %w", err)
-//	}
-//
-//	fmt.Printf("Wrote %d new lines to target file.\n", currentLine-lastLine)
-//
-//	return currentLine, nil
-//}
+import (
+	"bufio"
+	"bytes"
+	"errors"
+	"fmt"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
+	"io"
+	"os"
+	"time"
+)
+
+func main() {
+	number := int64(0)
+	for true {
+
+		fmt.Println("Number:", number)
+
+		f, err := os.Open("/Users/emory/go/src/github.com/dbaudit-beat/internal/common/examples/large_input.txt")
+		if err != nil {
+			panic(err)
+		}
+
+		defer f.Close()
+
+		_, err = f.Seek(number, io.SeekStart)
+		if err != nil {
+			panic(err)
+		}
+
+		target, err := os.OpenFile("/Users/emory/go/src/github.com/dbaudit-beat/internal/common/examples/large_input.utf8.txt", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+		if err != nil {
+			panic(err)
+		}
+
+		defer target.Close()
+
+		writer := bufio.NewWriter(target)
+
+		decoder := simplifiedchinese.GBK.NewDecoder()
+
+		originBuf := make([]byte, 4096)
+		for {
+
+			n, err := f.Read(originBuf)
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				}
+			}
+
+			number += int64(n)
+
+			reader := transform.NewReader(bytes.NewBuffer(originBuf[:n]), decoder)
+
+			buf := make([]byte, 1024)
+			for {
+				m, err := reader.Read(buf)
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
+				}
+				_, err = writer.Write(buf[:m])
+				if err != nil {
+					panic(err)
+				}
+
+				if err = writer.Flush(); err != nil {
+					panic(err)
+				}
+
+			}
+		}
+
+		fmt.Println("Total:", number)
+		time.Sleep(1 * time.Second)
+	}
+}
