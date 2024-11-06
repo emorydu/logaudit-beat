@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/emorydu/dbaudit/internal/common/conv"
 	"os"
 	"strconv"
 	"strings"
@@ -37,7 +38,7 @@ func main() {
 					panic("invalid position")
 				}
 				position, _ := strconv.ParseInt(spans[2], 10, 64)
-				last, err := C2UTF8("gbk", spans[0], spans[1], position)
+				last, err := conv.C2UTF8("gbk", spans[0], spans[1], position)
 				if err != nil {
 					fmt.Println(err)
 				}
