@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"golang.org/x/sys/windows"
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
@@ -12,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 )
 
 type Conv struct {
@@ -77,13 +77,16 @@ func C2UTF8(enc, src, dst string, last int64) (int64, error) {
 	}
 	defer input.Close()
 
-	handle := input.Fd()
-	var overlapped syscall.Overlapped
-	err = syscall.LockFile(syscall.Handle(handle), 0, 0, 0xFFFFFFFF, 0xFFFFFFFF, &overlapped)
+	handle := windows.Handle(input.Fd())
+	var lock windows.Overlapped
+	lock.HEvent = windows.Handle(0)
+
+	err = windows.LockFileEx(handle, windows.LOCKFILE_EXCLUSIVE_LOCK, 0, 1<<32-1, 1<<32-1, &lock)
 	if err != nil {
-		return 0, fmt.Errorf("error locking source file: %w", err)
+		fmt.Println("Error locking file:", err)
+		return last, err
 	}
-	defer syscall.UnlockFile(syscall.Handle(handle), 0, 0, 0xFFFFFFFF, 0xFFFFFFFF)
+	defer windows.UnlockFileEx(handle, 0, 1<<32-1, 1<<32-1, &lock)
 
 	inputInfo, err := input.Stat()
 	if err != nil {
