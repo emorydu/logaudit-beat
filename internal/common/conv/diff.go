@@ -25,28 +25,22 @@ func DiffPosition(rootPath string, convpath []string) error {
 			if err != nil && !errors.Is(err, utils.ErrAlreadyExists) {
 				return err
 			}
-
-			err = filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
-				if err != nil {
-					return err
-				}
-				// todo sub-dir files...
-				if !info.IsDir() {
-					fmt.Println(p)
-					pp := filepath.Join(path+"utf8", info.Name()+".utf8")
+			rd, err := os.ReadDir(path)
+			if err != nil {
+				return err
+			}
+			for _, f := range rd {
+				if !f.IsDir() {
+					p := filepath.Join(path, f.Name())
+					pp := filepath.Join(path+"utf8", f.Name()+".utf8")
 					m[fmt.Sprintf(fmt.Sprintf("%s######%s######", p, pp))] = struct{}{}
 				}
-
-				return nil
-			})
+			}
 
 		}
 
 	}
-	if err != nil {
-		return err
-	}
-
+	
 	existing := make([]string, 0)
 	pf, err := os.Open(positionFile)
 	if err != nil {

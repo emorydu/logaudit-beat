@@ -13,6 +13,7 @@ import (
 	"github.com/emorydu/dbaudit/internal/beatcli/systemutil"
 	"github.com/emorydu/dbaudit/internal/common"
 	"github.com/emorydu/dbaudit/internal/common/client"
+	"github.com/emorydu/dbaudit/internal/common/conv"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/emorydu/dbaudit/internal/common/utils"
 	"os"
@@ -59,7 +60,7 @@ func (s service) FetchConfigAndOp() {
 		return
 	}
 
-	err = DiffPosition(s.rootPath, resp.Convpath)
+	err = conv.DiffPosition(s.rootPath, resp.Convpath)
 	if err != nil {
 		s.log.Errorf("diff position file error: %v", err)
 		return
