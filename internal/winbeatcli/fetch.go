@@ -146,7 +146,9 @@ func AppendContent(src string, ip, rootPath string) string {
 	lines := strings.Split(src, "\n")
 	var s string
 	for _, line := range lines {
-		if strings.Contains(line, "(insert)") {
+		if strings.Contains(strings.TrimSpace(line), "parsers_file") {
+			s += "    parsers_file " + filepath.Join(rootPath, "parsers.conf")
+		} else if strings.Contains(line, "(insert)") {
 			fill := strings.Split(strings.TrimSpace(line), " ")[1]
 			newline := fmt.Sprintf(`    DB %s\db\%s.db`+"\n", rootPath, fill)
 			s += newline

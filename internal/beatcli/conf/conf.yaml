@@ -8,5 +8,5 @@ log:
     - logs/beatcli.log
     - logs/beatcli_error.log
 
-local_ip: 192.168.1.223
-server_addr: 192.168.1.123:9090
+local_ip: 192.168.1.44
+server_addr: 192.168.1.124:9090

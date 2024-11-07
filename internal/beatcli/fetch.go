@@ -15,6 +15,7 @@ import (
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -138,10 +139,22 @@ func RunShellReturnPid(arg string) (string, error) {
 	return strings.ReplaceAll(strings.ReplaceAll(out.String(), " ", ""), "\n", ""), nil
 }
 
-func RunExec(binary, args string) error {
-	cmd := exec.Command(binary, "-c", args)
+func RunExec2(args string) error {
+	cmd := exec.Command("/bin/sh", "-c", `/usr/local/beatcli/fluent-bit -c "/usr/local/beatcli/fluent-bit.conf"`)
 	if err := cmd.Run(); err != nil {
 		return err
+	}
+	return nil
+}
+
+func RunExec(binary, args string) error {
+	var outBuf, errBuf bytes.Buffer
+	cmd := exec.Command(binary, "-c", args)
+
+	cmd.Stdout = &outBuf
+	cmd.Stderr = &errBuf
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("run error: %v", errBuf.String())
 	}
 
 	return nil
@@ -160,7 +173,9 @@ func AppendContent(src string, ip, rootPath string) string {
 	lines := strings.Split(src, "\n")
 	var s string
 	for _, line := range lines {
-		if strings.Contains(line, "(insert)") {
+		if strings.Contains(strings.TrimSpace(line), "parsers_file") {
+			s += "    parsers_file " + filepath.Join(rootPath, "parsers.conf")
+		} else if strings.Contains(line, "(insert)") {
 			fill := strings.Split(strings.TrimSpace(line), " ")[1]
 			newline := fmt.Sprintf("    DB %s/db/%s.db\n", rootPath, fill)
 			s += newline

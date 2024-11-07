@@ -57,6 +57,7 @@ func Register() {
 		_ = pf.Close()
 	}
 
+	logger.Infof("executablePath: %v", executablePath)
 	svc := service{
 		ctx:      context.Background(),
 		os:       runtime.GOOS,
