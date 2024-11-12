@@ -291,6 +291,18 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Parser json
     Reserve_Data on
 `, indexName, indexName)
+	} else if parserType == -1 {
+		filterBlock = fmt.Sprintf(`
+[FILTER]
+    Name record_modifier
+    Match %s
+    Record @hostip ${@hostip}
+
+[FILTER]
+    Name modify
+    Match %s
+    Rename log message
+`, indexName, indexName)
 	} else {
 		filterBlock = fmt.Sprintf(`
 [FILTER]
@@ -343,22 +355,31 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Exclude log .
 `, indexName, indexName)
 	} else {
-		filterBlock += fmt.Sprintf(`
+		if parserType != -1 {
+			filterBlock += fmt.Sprintf(`
 [FILTER]
     Name grep
     Match %s
     Exclude log .
 `, indexName)
-
+		}
 	}
 
-	outputBlock = fmt.Sprintf(`
+	if parserType == -1 {
+		outputBlock = fmt.Sprintf(`
+[OUTPUT]
+    Name stdout
+    Match %s
+`, indexName)
+	} else {
+		outputBlock = fmt.Sprintf(`
 [OUTPUT]
     Name kafka
     Match %s
     Brokers %s
     Topics %s
 `, indexName, other, indexName)
+	}
 
 	if parserType == 0 { // regex
 		parser = fmt.Sprintf(`

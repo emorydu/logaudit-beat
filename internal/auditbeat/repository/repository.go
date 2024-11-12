@@ -49,7 +49,7 @@ func (r *repository) QueryCollectConfig(ctx context.Context, ip string) (model.C
 }
 
 func (r *repository) UpdateStatus(ctx context.Context, ip string, status int) error {
-	q := "ALTER TABLE monitor UPDATE status = 2 WHERE ip = ?"
+	q := "ALTER TABLE monitor UPDATE status = 2, cpuUse = 0, memUse = 0 WHERE ip = ?"
 	return r.db.Exec(ctx, q, ip)
 }
 
@@ -131,7 +131,7 @@ SELECT ccr.srcIp,
        pr.parseType2,
        pr.param1_2,
        pr.rid,
-       ccf.encoding
+       ccr.encoding
 FROM collect_conf AS ccf
          RIGHT JOIN collect_conf_relation AS ccr ON ccf.srcIp = ccr.srcIp
          LEFT JOIN parsing_rule AS pr ON ccr.rid = pr.rid 
