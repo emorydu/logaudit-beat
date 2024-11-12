@@ -121,6 +121,7 @@ const (
     Channels System,Application,Security,Setup,Windows PowerShell
     Interval_Sec 1
     Tag windows_log
+	(insert) %s
 
 [FILTER]
     Name record_modifier
@@ -195,6 +196,9 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 
 		inoutBuffer.Write([]byte(bitConf))
 
+		if strings.TrimSpace(parsersConf) == "" {
+			continue
+		}
 		if parsersConf == `
 [PARSER]
     Name json
@@ -209,11 +213,12 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
     Name json
     Format json
 `)) {
-			ss := strings.ReplaceAll(parsersConf, fmt.Sprintf(`
+
+			ss := strings.Replace(parsersConf, fmt.Sprintf(`
 [PARSER]
     Name json
     Format json
-`), "")
+`), "", 1)
 			parserBuffer.Write([]byte(ss))
 		} else {
 			parserBuffer.Write([]byte(parsersConf))
@@ -224,7 +229,7 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 	parserBuffer.Write([]byte(tmpJsonParser))
 
 	if os == "windows" {
-		inoutBuffer.Write([]byte(fmt.Sprintf(windowsTemplate, fmt.Sprintf("%s:%d", domain, port)))) // Default values
+		inoutBuffer.Write([]byte(fmt.Sprintf(windowsTemplate, "windows_log", fmt.Sprintf("%s:%d", domain, port)))) // Default values
 		hostsInfo[fmt.Sprintf("%s %s", val, domain)] = struct{}{}
 	}
 
