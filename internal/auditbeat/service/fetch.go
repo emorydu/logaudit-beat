@@ -352,8 +352,58 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
 
 	}
 
+	//if parserType != -1 {
+	//	filterBlock += fmt.Sprintf(`
+	//[FILTER]
+	//   Name grep
+	//   Match %s
+	//   Exclude log .
+	//`, indexName+ridstr)
+	//}
 	if multiParse == 1 {
-		filterBlock = fmt.Sprintf(`
+		if secondaryStatus == 1 {
+			if secondaryParserType == 0 { // regex
+				filterBlock = fmt.Sprintf(`
+[FILTER]
+    Name record_modifier
+    Match %s
+    Record @hostip ${@hostip}
+
+[FILTER]
+    Name parser
+    Match %s
+    Key_Name %s
+    parser %s
+    Reserve_Data On
+
+[FILTER]
+    Name grep
+    Match %s
+    Exclude log .
+`, indexName+ridstr, indexName+ridstr, secondary, indexName+ridstr+"_again", indexName+ridstr)
+			} else {
+				filterBlock = fmt.Sprintf(`
+[FILTER]
+    Name record_modifier
+    Match %s
+    Record @hostip ${@hostip}
+
+[FILTER]
+    Name parser
+    Match %s
+    Key_Name %s
+    Parser json
+    Reserve_Data On
+
+[FILTER]
+    Name grep
+    Match %s
+    Exclude log .
+`, indexName+ridstr, indexName+ridstr, secondary, indexName+ridstr)
+			}
+
+		} else {
+			filterBlock = fmt.Sprintf(`
 [FILTER]
     Name record_modifier
     Match %s
@@ -364,6 +414,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Match %s
     Exclude log .
 `, indexName+ridstr, indexName+ridstr)
+		}
 	} else {
 		if parserType != -1 {
 			filterBlock += fmt.Sprintf(`
