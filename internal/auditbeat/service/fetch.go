@@ -161,7 +161,7 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 
 	domain := "logaudit"
 	port := 9092
-	val := "192.168.1.124"
+	val := "192.168.1.123"
 	hostsInfo := make(map[string]struct{})
 
 	tmpJsonParser := ""
@@ -214,11 +214,16 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
     Format json
 `)) {
 
-			ss := strings.Replace(parsersConf, fmt.Sprintf(`
+			tmpJsonParser = `
 [PARSER]
     Name json
     Format json
-`), "", 1)
+`
+			ss := strings.ReplaceAll(parsersConf, fmt.Sprintf(`
+[PARSER]
+    Name json
+    Format json
+`), "")
 			parserBuffer.Write([]byte(ss))
 		} else {
 			parserBuffer.Write([]byte(parsersConf))
@@ -269,7 +274,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Parser_Firstline %s
     Skip_Empty_Lines On
     (insert) %s
-`, collectPath, indexName, indexName+ridstr, indexName) // todo = indexName + rid
+`, collectPath, indexName+ridstr, indexName+ridstr, indexName+ridstr) // todo = indexName + rid
 	} else {
 		inputBlock = fmt.Sprintf(`
 [INPUT]
@@ -278,7 +283,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Tag %s
     Read_From_Head true
     (insert) %s
-`, collectPath, indexName, indexName)
+`, collectPath, indexName+ridstr, indexName+ridstr)
 	}
 
 	// filter
@@ -295,7 +300,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Key_Name log
     Parser json
     Reserve_Data on
-`, indexName, indexName)
+`, indexName+ridstr, indexName+ridstr)
 	} else if parserType == -1 {
 		filterBlock = fmt.Sprintf(`
 [FILTER]
@@ -307,7 +312,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Name modify
     Match %s
     Rename log message
-`, indexName, indexName)
+`, indexName+ridstr, indexName+ridstr)
 	} else {
 		filterBlock = fmt.Sprintf(`
 [FILTER]
@@ -321,7 +326,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Key_Name log
     Parser %s
     Reserve_Data on
-`, indexName, indexName, indexName+ridstr)
+`, indexName+ridstr, indexName+ridstr, indexName+ridstr)
 	}
 
 	if secondaryStatus == 1 {
@@ -333,7 +338,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Key_Name %s
     parser %s
     Reserve_Data On
-`, indexName, secondary, indexName+ridstr+"_again")
+`, indexName+ridstr, secondary, indexName+ridstr+"_again")
 		} else {
 			filterBlock += fmt.Sprintf(`
 [FILTER]
@@ -342,7 +347,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Key_Name %s
     Parser json
     Reserve_Data On
-`, indexName, secondary)
+`, indexName+ridstr, secondary)
 		}
 
 	}
@@ -358,7 +363,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Name grep
     Match %s
     Exclude log .
-`, indexName, indexName)
+`, indexName+ridstr, indexName+ridstr)
 	} else {
 		if parserType != -1 {
 			filterBlock += fmt.Sprintf(`
@@ -366,7 +371,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Name grep
     Match %s
     Exclude log .
-`, indexName)
+`, indexName+ridstr)
 		}
 	}
 
@@ -375,7 +380,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
 [OUTPUT]
     Name stdout
     Match %s
-`, indexName)
+`, indexName+ridstr)
 	} else {
 		outputBlock = fmt.Sprintf(`
 [OUTPUT]
@@ -383,7 +388,7 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Match %s
     Brokers %s
     Topics %s
-`, indexName, other, indexName)
+`, indexName+ridstr, other, indexName)
 	}
 
 	if parserType == 0 { // regex

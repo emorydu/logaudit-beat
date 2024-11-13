@@ -13,7 +13,7 @@ clickhouse:
 log:
   level: info
   path:
-    - logs/beatcli.log
-    - logs/beatcli_error.log
+    - /logAudit/cache/log/auditbeat/auditbeat.log
+    - /logAudit/cache/log/auditbeat_error.log
 
 version: v1.0.0

@@ -235,82 +235,68 @@ func TestTimestampCompare(t *testing.T) {
 func Test_builderSingleConf2(t *testing.T) {
 	var (
 		values = []model.ConfigInfo{
-			// json once parser
+			// 一次解析正则
+			//{
+			//	IP:                   "192.168.1.44",
+			//	AgentPath:            "/www/wwwlogs/zblog.test.com-access_log",
+			//	MultiParse:           0,
+			//	RegexParamValue:      `(?<remote_addr>(?:(?:\d{1,3}(?:\.\d{1,3}){3})|(?:[a-fA-F0-9:]+))) - - \[(?<datetime>[^\]]+)\] "(?<method>\w+) (?<path>[^ ]+) (?<http_version>[^"]+)" (?<status>\d{3}) (?<size>\d+) "(?<referer>[^"]*)" "(?<user_agent>[^"]+)"`,
+			//	Check:                1,
+			//	ParseType:            0,
+			//	IndexName:            "apach_access_log_2",
+			//	Secondary:            "",
+			//	SecondaryState:       0,
+			//	SecondaryParsingType: 0,
+			//	SecondaryRegexValue:  "",
+			//	RID:                  17,
+			//	Encoding:             0,
+			//},
+			//// 一次解析正则
+			//{
+			//	IP:                   "192.168.1.44",
+			//	AgentPath:            "/var/log/maillog",
+			//	MultiParse:           0,
+			//	RegexParamValue:      `(?<datetime>[A-Za-z]{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\s+(?<host>\S+)\s+(?<program>\S+)\[(?<process_id>\d+)\]:\s+(?<message>.+)`,
+			//	Check:                1,
+			//	ParseType:            0,
+			//	IndexName:            "postfix_log",
+			//	Secondary:            "",
+			//	SecondaryState:       0,
+			//	SecondaryParsingType: 0,
+			//	SecondaryRegexValue:  "",
+			//	RID:                  20,
+			//	Encoding:             0,
+			//},
+			//// 一次解析正则
+			//{
+			//	IP:                   "192.168.1.44",
+			//	AgentPath:            "/root/test-hk/test-logaudit/test_log/test1.log",
+			//	MultiParse:           0,
+			//	RegexParamValue:      `(?<hostname>\w+)-(?<product_id>\d+) `,
+			//	Check:                1,
+			//	ParseType:            0,
+			//	IndexName:            "test01",
+			//	Secondary:            "",
+			//	SecondaryState:       0,
+			//	SecondaryParsingType: 0,
+			//	SecondaryRegexValue:  "",
+			//	RID:                  31,
+			//	Encoding:             0,
+			//},
 			{
-				IP:                   "192.168.1.223",
-				AgentPath:            "/var/log/command.log",
-				MultiParse:           0,
-				RegexParamValue:      "1",
-				Check:                1,
-				ParseType:            2,
-				IndexName:            "linux_command",
-				Secondary:            "",
-				SecondaryState:       0,
-				SecondaryParsingType: 0,
-				SecondaryRegexValue:  "",
-				RID:                  3,
-			},
-			//regex multi parse
-			{
-				IP:                   "192.168.1.223",
-				AgentPath:            "/var/log/java.log",
+				IP:                   "192.168.1.44",
+				AgentPath:            "/root/test-hk/test-logaudit/test_log/test2.log",
 				MultiParse:           1,
-				RegexParamValue:      `^(?<time>\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}\\.\\d{3,})\\s+(?<key1>[^\\s]*)\\s+(?<key2>[^\\s]*)\\s+(?<level>[^\\s]*)\\s+(?<message>.*)`,
+				RegexParamValue:      `(?<all>.+)`,
 				Check:                1,
 				ParseType:            0,
-				IndexName:            "java_log",
-				Secondary:            "",
-				SecondaryState:       0,
-				SecondaryParsingType: 0, // regex
-				SecondaryRegexValue:  "",
-				RID:                  6,
-			},
-			//json once parser
-			{
-				IP:                   "192.168.1.223",
-				AgentPath:            "/var/log/command.log",
-				MultiParse:           0,
-				RegexParamValue:      "1",
-				Check:                1,
-				ParseType:            2,
-				IndexName:            "linux_command",
-				Secondary:            "",
-				SecondaryState:       0,
-				SecondaryParsingType: 0,
-				SecondaryRegexValue:  "",
-				RID:                  7,
-			},
-			//regex multi parser
-			{
-				IP:                   "192.168.1.223",
-				AgentPath:            "/var/log/anaconda/storage.log",
-				MultiParse:           1,
-				RegexParamValue:      `^(?<time>\\d{2}:\\d{2}:\\d{2}\\,\\d{3,})\\s+(?<level>[^\\s]*)\\s+(?<message>.*)`,
-				Check:                1,
-				ParseType:            0,
-				IndexName:            "storage_log",
-				MappingIP:            "",
-				MappingStatus:        0,
-				KafkaPort:            0,
-				Secondary:            "",
-				SecondaryState:       0,
-				SecondaryParsingType: 0,
-				SecondaryRegexValue:  "",
-				RID:                  8,
-			},
-			{
-				IP:                   "192.168.1.223",
-				AgentPath:            "/var/log/flowagent/packetbeat",
-				MultiParse:           0,
-				RegexParamValue:      `^(?<time>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}\\+\\d{4})\\s+(?<level>[^\\s]*)\\s+(?<message>[^{]*)\\s?(?<json>.*)?`,
-				Check:                1,
-				ParseType:            0,
-				IndexName:            "oacjetbeat_log",
-				Secondary:            "json",
+				IndexName:            "test01",
+				Secondary:            "all",
 				SecondaryState:       1,
-				SecondaryParsingType: 2,
-				SecondaryRegexValue:  "1",
-				RID:                  11,
+				SecondaryParsingType: 0,
+				SecondaryRegexValue:  `(?<hostname>\\w+):(?<product_id>\\d+)`,
+				RID:                  32,
+				Encoding:             0,
 			},
 		}
 	)
@@ -337,6 +323,11 @@ func Test_builderSingleConf2(t *testing.T) {
     Name json
     Format json
 `)) {
+			tmpJsonParser = `
+[PARSER]
+    Name json
+    Format json
+`
 			// todo
 			ss := strings.ReplaceAll(parsersConf, fmt.Sprintf(`
 [PARSER]
