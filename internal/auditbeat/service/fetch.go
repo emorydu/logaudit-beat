@@ -264,7 +264,20 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
 
 	// input
 	if multiParse == 1 {
-		inputBlock = fmt.Sprintf(`
+		if parserType == 2 {
+			inputBlock = fmt.Sprintf(`
+[INPUT]
+    Name tail
+    Path %s
+    Tag %s
+    Read_From_Head true
+    Multiline On
+    Parser_Firstline %s
+    Skip_Empty_Lines On
+    (insert) %s
+`, collectPath, indexName+ridstr, "json", indexName+ridstr) // todo = indexName + rid
+		} else {
+			inputBlock = fmt.Sprintf(`
 [INPUT]
     Name tail
     Path %s
@@ -275,6 +288,8 @@ func builderSingleConf2(collectPath string, indexName string, other string, mult
     Skip_Empty_Lines On
     (insert) %s
 `, collectPath, indexName+ridstr, indexName+ridstr, indexName+ridstr) // todo = indexName + rid
+		}
+
 	} else {
 		inputBlock = fmt.Sprintf(`
 [INPUT]

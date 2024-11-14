@@ -10,14 +10,14 @@ type ConfigInfo struct {
 	MultiParse           int8   // 0 stop 1 startup
 	RegexParamValue      string // regexValue (parser_file)
 	Check                int8   // rule open / stop
-	ParseType            int8   // format (0 regex, 1 json)
+	ParseType            int8   // format (0 regex, 2 json)
 	IndexName            string // topic = parse_file (name)
 	MappingIP            string
 	MappingStatus        int8
 	KafkaPort            int32
 	Secondary            string // field value
 	SecondaryState       int8   // 0 stop 1 startup
-	SecondaryParsingType int8   // 0 regex, 1 json
+	SecondaryParsingType int8   // 0 regex, 2 json
 	SecondaryRegexValue  string // regex value
 	RID                  int32
 	Encoding             int8
