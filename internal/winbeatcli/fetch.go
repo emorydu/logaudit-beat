@@ -25,6 +25,14 @@ import (
 
 const fluentBit = "fluent-bit.exe"
 
+type Fetch struct {
+	s service
+}
+
+func (f *Fetch) Run() {
+	f.s.FetchConfigAndOp()
+}
+
 func (s service) FetchConfigAndOp() {
 	if s.agentUpgrade != 0 || s.bitUpgrade != 0 {
 		s.log.Info("component upgrading....")
@@ -198,18 +206,47 @@ const (
 
 // compareAppend compare the current hosts file and complete the additional writing of the hosts file as needed.
 func compareAppend(ip string, domain []string) error {
-	data, err := os.ReadFile(hosts)
+	f, err := os.Open(hosts)
 	if err != nil {
 		return err
 	}
-	for _, v := range domain {
-		d := fmt.Sprintf("%s %s", ip, v)
-		if !strings.Contains(string(data), d) {
-			return appendToHosts(d)
-		}
+	defer f.Close()
+
+	appendstr := ""
+
+	for _, d := range domain {
+		appendstr += strings.Join([]string{ip, d}, " ") + "\n"
 	}
 
-	return nil
+	rewrite := ""
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		flag := true
+		for _, v := range domain {
+			if strings.Contains(scanner.Text(), ip) || strings.Contains(scanner.Text(), v) {
+				flag = false
+			}
+
+		}
+		if flag {
+			rewrite += scanner.Text() + "\n"
+		}
+
+	}
+	return os.WriteFile(hosts, []byte(rewrite+appendstr), 0644)
+	//data, err := os.ReadFile(hosts)
+	//if err != nil {
+	//	return err
+	//}
+	//for _, v := range domain {
+	//	d := fmt.Sprintf("%s %s", ip, v)
+	//	if !strings.Contains(string(data), d) {
+	//		return appendToHosts(d)
+	//	}
+	//}
+	//
+	//return nil
 }
 
 func appendToHosts(item string) error {

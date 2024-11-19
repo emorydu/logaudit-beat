@@ -19,7 +19,15 @@ import (
 	"strings"
 )
 
+type Fetch struct {
+	s service
+}
+
 const fluentBit = "ps aux|grep fluent-bit|grep -v grep|awk '{print $2}'"
+
+func (f *Fetch) Run() {
+	f.s.FetchConfigAndOp()
+}
 
 func (s service) FetchConfigAndOp() {
 	if s.agentUpgrade != 0 || s.bitUpgrade != 0 {
@@ -79,24 +87,28 @@ func (s service) FetchConfigAndOp() {
 			}
 		}
 	} else if resp.Operator == common.AgentOperatorUpdated {
-		// 存在则停止
-		if pid != "" {
-			_ = RunKillApp(pid)
-		} else {
-			err = hotUpdate(spans, s.Config.LocalIP, s.rootPath)
-			if err != nil {
-				return
-			}
-			_, err = cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
-			if err != nil {
-				s.log.Errorf("update beat operator error: %v", err)
-				return
-			}
-			err = RunExec(fmt.Sprintf("%s%s", s.rootPath, "/fluent-bit"), s.rootPath+"/fluent-bit.conf")
-			if err != nil {
-				s.log.Errorf("run fluent-bit exec error: %v\n", err)
-			}
+		//if pid != "" {
+		pid, err = RunShellReturnPid(fluentBit)
+		if err != nil {
+			s.log.Errorf("query fluent-bit pid error: %v", err)
+			return
 		}
+		_ = RunKillApp(pid)
+		//} else {
+		err = hotUpdate(spans, s.Config.LocalIP, s.rootPath)
+		if err != nil {
+			return
+		}
+		_, err = cli.Updated(context.Background(), &auditbeat.UpdatedRequest{Ip: s.Config.LocalIP})
+		if err != nil {
+			s.log.Errorf("update beat operator error: %v", err)
+			return
+		}
+		err = RunExec(fmt.Sprintf("%s%s", s.rootPath, "/fluent-bit"), s.rootPath+"/fluent-bit.conf")
+		if err != nil {
+			s.log.Errorf("run fluent-bit exec error: %v\n", err)
+		}
+		//}
 
 	} else if resp.Operator == common.AgentOperatorStopped {
 		if pid != "" {
@@ -188,21 +200,53 @@ func AppendContent(src string, ip, rootPath string) string {
 
 const (
 	hosts = "/etc/hosts"
+	//hosts = "/Users/emory/go/src/github.com/dbaudit-beat/internal/beatcli/hosts"
 )
 
 func compareAppend(ip string, domain []string) error {
-	data, err := os.ReadFile(hosts)
+	f, err := os.Open(hosts)
 	if err != nil {
 		return err
 	}
-	for _, v := range domain {
-		d := fmt.Sprintf("%s %s", ip, v)
-		if !strings.Contains(string(data), d) {
-			return appendToHosts(d)
-		}
+	defer f.Close()
+
+	appendstr := ""
+
+	for _, d := range domain {
+		appendstr += strings.Join([]string{ip, d}, " ") + "\n"
 	}
 
-	return nil
+	rewrite := ""
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		flag := true
+		for _, v := range domain {
+			if strings.Contains(scanner.Text(), ip) || strings.Contains(scanner.Text(), v) {
+				flag = false
+			}
+
+		}
+		if flag {
+			rewrite += scanner.Text() + "\n"
+		}
+
+	}
+	return os.WriteFile(hosts, []byte(rewrite+appendstr), 0644)
+
+	//data, err := os.ReadFile(hosts)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//for _, v := range domain {
+	//	d := fmt.Sprintf("%s %s", ip, v)
+	//	if !strings.Contains(string(data), d) {
+	//		return appendToHosts(d)
+	//	}
+	//}
+	//
+	//return nil
 }
 
 func appendToHosts(item string) error {

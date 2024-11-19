@@ -53,9 +53,13 @@ func TestAppendContent(t *testing.T) {
 	fmt.Println(string(content))
 }
 
-func Test_diffPosition(t *testing.T) {
-	err := diffPosition("", []string{"/Users/emory/go/src/github.com/dbaudit-beat/internal/beatcli/testing*"})
-	if err != nil {
-		t.Fatal(err)
-	}
+//func Test_diffPosition(t *testing.T) {
+//	err := diffPosition("", []string{"/Users/emory/go/src/github.com/dbaudit-beat/internal/beatcli/testing*"})
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//}
+
+func Test_compareAppend(t *testing.T) {
+	compareAppend("192.168.1.123", []string{"logaudit"})
 }

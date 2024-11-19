@@ -68,6 +68,8 @@ func Register() {
 		log:      logger,
 	}
 
+	svc.FetchConfigAndOp()
+
 	tasker := NewTasker(logger)
 	funcs := []task{
 		{
@@ -78,7 +80,8 @@ func Register() {
 		{
 			name:        svc.Fetch(),
 			scheduleVal: "@every 15s",
-			invoke:      svc.FetchConfigAndOp,
+			delay:       true,
+			jobInvoke:   svc.scheduleJob,
 		},
 		{
 			name:        svc.CheckUpgradeTsk(),

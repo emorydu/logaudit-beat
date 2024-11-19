@@ -8,7 +8,7 @@ require (
 	github.com/emorydu/dbaudit/internal/common v0.0.0-00010101000000-000000000000
 	github.com/emorydu/log v1.0.3
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/sirupsen/logrus v1.9.3
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -30,6 +30,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect
 	google.golang.org/grpc v1.67.1 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	k8s.io/klog v1.0.0 // indirect
 )

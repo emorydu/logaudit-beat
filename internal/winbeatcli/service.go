@@ -33,6 +33,8 @@ func (s service) scheduleJob(name string) cron.Job {
 	if name == "converter" {
 		return &Conv{s: s}
 	}
-
+	if name == "Fetch" {
+		return &Fetch{s: s}
+	}
 	return nil
 }
