@@ -68,7 +68,9 @@ func Register() {
 		log:      logger,
 	}
 
-	svc.FetchConfigAndOp()
+	logger.Info("first fetch startup...")
+	go svc.FetchConfigAndOp()
+	logger.Info("first fetch finished...")
 
 	tasker := NewTasker(logger)
 	funcs := []task{

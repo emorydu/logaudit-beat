@@ -30,7 +30,7 @@ type Fetch struct {
 }
 
 func (f *Fetch) Run() {
-	f.s.FetchConfigAndOp()
+	go f.s.FetchConfigAndOp()
 }
 
 func (s service) FetchConfigAndOp() {
@@ -98,6 +98,11 @@ func (s service) FetchConfigAndOp() {
 			}
 		}
 	} else if resp.Operator == common.AgentOperatorUpdated {
+		exist, _, _, err = systemutil.IsProcessExist(fluentBit)
+		if err != nil {
+			s.log.Errorf("query fluent-bit pid error: %v", err)
+			return
+		}
 		if exist {
 			err = systemutil.Kill(fluentBit)
 			if err != nil {
@@ -135,6 +140,7 @@ func (s service) FetchConfigAndOp() {
 		s.log.Errorf("unknown operator: %v", resp.Operator)
 		return
 	}
+	return
 }
 
 func hotUpdate(spans []string, ip string, rootPath string) error {
