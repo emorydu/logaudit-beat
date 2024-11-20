@@ -48,8 +48,8 @@ type FetchService interface {
 	TODO()
 
 	Download(
-		context.Context,
-		common.OperatingSystemType,
+	  context.Context,
+	  common.OperatingSystemType,
 	) ([]byte, error)
 
 	QueryConfigInfo(context.Context, string, string) ([]byte, map[string]struct{}, []string, error)
@@ -168,10 +168,16 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 
 	convpath := make([]string, 0)
 
+	externalMappingStatus := 0
+	externalMIp := ""
+	externalMPort := 0
 	for _, v := range info {
 		if v.Check == stopped {
 			continue
 		}
+		externalMappingStatus = int(v.MappingStatus)
+		externalMIp = v.MappingIP
+		externalMPort = int(v.KafkaPort)
 		broker := validateBroker(model.ReallyBroker{
 			DVal:    val,
 			DDomain: domain,
@@ -234,8 +240,17 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 	parserBuffer.Write([]byte(tmpJsonParser))
 
 	if os == "windows" {
-		inoutBuffer.Write([]byte(fmt.Sprintf(windowsTemplate, "windows_log", fmt.Sprintf("%s:%d", domain, port)))) // Default values
-		hostsInfo[fmt.Sprintf("%s %s", val, domain)] = struct{}{}
+		broker := validateBroker(model.ReallyBroker{
+			DVal:    val,
+			DDomain: domain,
+			DPort:   port,
+			VStatus: externalMappingStatus,
+			MIP:     externalMIp,
+			MPort:   externalMPort,
+			MDomain: domain,
+		})
+		inoutBuffer.Write([]byte(fmt.Sprintf(windowsTemplate, "windows_log", fmt.Sprintf("%s:%d", broker.DDomain, broker.DPort)))) // Default values
+		hostsInfo[fmt.Sprintf("%s %s", broker.DVal, broker.DDomain)] = struct{}{}
 	}
 
 	inoutBuffer.Write([]byte(common.InParserConn))
@@ -254,8 +269,8 @@ const (
 )
 
 func builderSingleConf2(collectPath string, indexName string, other string, multiParse int8,
-	secondaryStatus int8, secondary string, parserType int8, secondaryParserType int8, regexValue string,
-	secondaryRegexValue string, rid int32) (string, string) {
+  secondaryStatus int8, secondary string, parserType int8, secondaryParserType int8, regexValue string,
+  secondaryRegexValue string, rid int32) (string, string) {
 	ridstr := "_" + strconv.Itoa(int(rid))
 	inputBlock := ""
 	filterBlock := ""
