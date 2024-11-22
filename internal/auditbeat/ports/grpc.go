@@ -97,7 +97,7 @@ func (s GrpcServer) CheckUpgrade(ctx context.Context, req *auditbeat.CheckUpgrad
 }
 
 func (s GrpcServer) Binary(ctx context.Context, req *auditbeat.BinaryRequest) (*auditbeat.BinaryResponse, error) {
-	path := "/root/go/src/github.com/emorydu/" + req.GetPath()
+	path := "/logAudit/cache/" + req.GetPath()
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "binary read error: %v", err)
