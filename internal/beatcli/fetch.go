@@ -90,7 +90,7 @@ fi
 		"\nexport PROMPT_COMMAND='date \"+{\\\"Time\\\":\\\"%Y-%m-%d %T\\\",\\\"HostName\\\":\\\"$HOSTNAME\\\",\\\"LoginIp\\\":\\\"$LoginIp\\\",\\\"LoginUser\\\":\\\"$LoginUser\\\",\\\"NowUser\\\":\\\"${USER}\\\",\\\"CMD\\\":\\\"`history 1 | { read x cmd; echo \"$cmd\"; }`\\\"}\" >> /var/log/command.log'"
 	exists := utils.FileExists("/etc/profile.d/logaudit.sh")
 	if !exists && ws {
-		err = os.WriteFile("", []byte(c), 0644)
+		err = os.WriteFile("/etc/profile.d/logaudit.sh", []byte(c), 0644)
 		if err != nil {
 			s.log.Errorf("write opreate shell file error: %v", err)
 			return
