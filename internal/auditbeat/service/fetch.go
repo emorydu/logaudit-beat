@@ -9,16 +9,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/emorydu/dbaudit/internal/auditbeat/conf"
 	"github.com/emorydu/dbaudit/internal/auditbeat/model"
 	"github.com/emorydu/dbaudit/internal/auditbeat/repository"
 	"github.com/emorydu/dbaudit/internal/common"
 	"github.com/emorydu/dbaudit/internal/common/utils"
 	"github.com/sirupsen/logrus"
-	"path/filepath"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const (
@@ -276,6 +277,7 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 		}
 		if v.IndexName == "linux_operate_log" {
 			opFlag = true
+			p = "/var/log/command.log"
 		}
 		bitConf, parsersConf := builderSingleConf2(p, v.IndexName, fmt.Sprintf("%s:%d", broker.DDomain, broker.DPort), v.MultiParse, v.SecondaryState,
 			v.Secondary, v.ParseType, v.SecondaryParsingType, v.RegexParamValue, v.SecondaryRegexValue, v.RID)
