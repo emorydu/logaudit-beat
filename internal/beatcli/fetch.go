@@ -13,6 +13,7 @@ import (
 	"github.com/emorydu/dbaudit/internal/common/client"
 	"github.com/emorydu/dbaudit/internal/common/conv"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
+	"github.com/emorydu/dbaudit/internal/common/utils"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -63,12 +64,35 @@ func (s service) FetchConfigAndOp() {
 		return
 	}
 
+	ws := false
 	hostsInfos := resp.GetHostInfos()
 	for _, hostInfo := range hostsInfos {
+		if hostInfo == "cnm" {
+			ws = true
+			continue
+		}
 		vals := strings.Split(hostInfo, " ")
 		err = compareAppend(vals[0], []string{vals[1]})
 		if err != nil {
 			s.log.Errorf("rewrite hostsinfo error: %v", err)
+			return
+		}
+	}
+
+	c := `
+HISTDIR='/var/log/command.log'
+if [ ! -f $HISTDIR ];then
+touch $HISTDIR
+chmod 666 $HISTDIR
+fi
+` + "export LoginIp=`who -u am i 2>/dev/null| awk '{print $NF}'|sed -e 's/[()]//g'`" +
+		"\nexport LoginUser=`who am i|awk '{print $1}'`" +
+		"\nexport PROMPT_COMMAND='date \"+{\\\"Time\\\":\\\"%Y-%m-%d %T\\\",\\\"HostName\\\":\\\"$HOSTNAME\\\",\\\"LoginIp\\\":\\\"$LoginIp\\\",\\\"LoginUser\\\":\\\"$LoginUser\\\",\\\"NowUser\\\":\\\"${USER}\\\",\\\"CMD\\\":\\\"`history 1 | { read x cmd; echo \"$cmd\"; }`\\\"}\" >> /var/log/command.log'"
+	exists := utils.FileExists("/etc/profile.d/logaudit.sh")
+	if !exists && ws {
+		err = os.WriteFile("", []byte(c), 0644)
+		if err != nil {
+			s.log.Errorf("write opreate shell file error: %v", err)
 			return
 		}
 	}

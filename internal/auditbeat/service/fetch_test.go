@@ -346,3 +346,9 @@ func Test_builderSingleConf2(t *testing.T) {
 	fmt.Println(parserBuffer.String())
 
 }
+
+func TestSplit(t *testing.T) {
+	dst := "192.165.1.3-192.165.1.4"
+	values := strings.Split(dst, ",")
+	fmt.Println(values)
+}

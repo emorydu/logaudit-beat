@@ -7,6 +7,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/emorydu/dbaudit/internal/auditbeat/conf"
 	"github.com/emorydu/dbaudit/internal/auditbeat/model"
@@ -48,11 +49,11 @@ type FetchService interface {
 	TODO()
 
 	Download(
-	  context.Context,
-	  common.OperatingSystemType,
+		context.Context,
+		common.OperatingSystemType,
 	) ([]byte, error)
 
-	QueryConfigInfo(context.Context, string, string) ([]byte, map[string]struct{}, []string, error)
+	QueryConfigInfo(context.Context, string, string) ([]byte, map[string]struct{}, []string, bool, error)
 	CreateOrModUsage(ctx context.Context, ip string, cpuUse, memUse float64, status int, timestamp int64) error
 	QueryMonitorInfo(context.Context, string) (int, error)
 	Updated(context.Context, string) error
@@ -144,14 +145,14 @@ const (
 `
 )
 
-func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]byte, map[string]struct{}, []string, error) {
+func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]byte, map[string]struct{}, []string, bool, error) {
 
 	info, err := f.repo.FetchConfInfo(ctx, ip)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, false, err
 	}
 	if len(info) == 0 {
-		return nil, nil, nil, fmt.Errorf("ip: %s not fetch config infos", ip)
+		return nil, nil, nil, false, fmt.Errorf("ip: %s not fetch config infos", ip)
 	}
 
 	inoutBuffer := new(bytes.Buffer)
@@ -159,9 +160,17 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 
 	inoutBuffer.Write([]byte(fmt.Sprintf(header, ip)))
 
-	domain := "logaudit"
+	//domain := "logaudit"	// db query
+	domain, err := f.repo.QueryKafkaDomain(ctx)
+	if err != nil {
+		return nil, nil, nil, false, err
+	}
 	port := 9092
-	val := "192.168.1.124"
+	//val := "192.168.1.124" // db query
+	val, err := f.repo.QueryIp(ctx)
+	if err != nil {
+		return nil, nil, nil, false, err
+	}
 	hostsInfo := make(map[string]struct{})
 
 	tmpJsonParser := ""
@@ -171,7 +180,71 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 	externalMappingStatus := 0
 	externalMIp := ""
 	externalMPort := 0
+
+	// todo change info
+	var realInfo []model.ConfigInfo
 	for _, v := range info {
+		vals := strings.Split(v.IP, ",")
+		for _, vv := range vals {
+			if strings.Contains(vv, "-") {
+				ranges := strings.Split(vv, "-")
+				start := strings.Split(ranges[0], ",")
+				stop := strings.Split(ranges[1], ",")
+				startBigEndianOrder := fmt.Sprintf("%v.%v.%v.%v", start[3], start[2], start[1], start[0])
+				stopBigEndianOrder := fmt.Sprintf("%v.%v.%v.%v", stop[3], stop[2], stop[1], stop[0])
+				inIP := strings.Split(ip, ",")
+				inIPBigEndianOrder := fmt.Sprintf("%v.%v.%v.%v", inIP[3], inIP[2], inIP[1], inIP[0])
+				if inIPBigEndianOrder >= startBigEndianOrder && inIPBigEndianOrder <= stopBigEndianOrder {
+					realInfo = append(realInfo, model.ConfigInfo{
+						IP:                   vv,
+						AgentPath:            v.AgentPath,
+						MultiParse:           v.MultiParse,
+						RegexParamValue:      v.RegexParamValue,
+						Check:                v.Check,
+						ParseType:            v.ParseType,
+						IndexName:            v.IndexName,
+						MappingIP:            v.MappingIP,
+						MappingStatus:        v.MappingStatus,
+						KafkaPort:            v.KafkaPort,
+						Secondary:            v.Secondary,
+						SecondaryState:       v.SecondaryState,
+						SecondaryParsingType: v.SecondaryParsingType,
+						SecondaryRegexValue:  v.SecondaryRegexValue,
+						RID:                  v.RID,
+						Encoding:             v.Encoding,
+					})
+				}
+			}
+			if vv == ip {
+				realInfo = append(realInfo, model.ConfigInfo{
+					IP:                   vv,
+					AgentPath:            v.AgentPath,
+					MultiParse:           v.MultiParse,
+					RegexParamValue:      v.RegexParamValue,
+					Check:                v.Check,
+					ParseType:            v.ParseType,
+					IndexName:            v.IndexName,
+					MappingIP:            v.MappingIP,
+					MappingStatus:        v.MappingStatus,
+					KafkaPort:            v.KafkaPort,
+					Secondary:            v.Secondary,
+					SecondaryState:       v.SecondaryState,
+					SecondaryParsingType: v.SecondaryParsingType,
+					SecondaryRegexValue:  v.SecondaryRegexValue,
+					RID:                  v.RID,
+					Encoding:             v.Encoding,
+				})
+			}
+
+		}
+	}
+
+	if len(realInfo) == 0 {
+		return nil, nil, nil, false, errors.New("not configuration")
+	}
+
+	opFlag := false
+	for _, v := range realInfo {
 		if v.Check == stopped {
 			continue
 		}
@@ -194,8 +267,15 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 			if !strings.HasSuffix(p, "*") {
 				p = fmt.Sprintf("%s.utf8", p)
 			} else {
-				p = p[:len(p)-len("*")] + "utf8*"
+				if os == "windows" {
+					p = p[:len(p)-len("*")] + `utf8\*`
+				} else {
+					p = p[:len(p)-len("*")] + "utf8/*"
+				}
 			}
+		}
+		if v.IndexName == "linux_operate_log" {
+			opFlag = true
 		}
 		bitConf, parsersConf := builderSingleConf2(p, v.IndexName, fmt.Sprintf("%s:%d", broker.DDomain, broker.DPort), v.MultiParse, v.SecondaryState,
 			v.Secondary, v.ParseType, v.SecondaryParsingType, v.RegexParamValue, v.SecondaryRegexValue, v.RID)
@@ -256,7 +336,7 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 	inoutBuffer.Write([]byte(common.InParserConn))
 	inoutBuffer.Write(parserBuffer.Bytes())
 
-	return inoutBuffer.Bytes(), hostsInfo, convpath, nil
+	return inoutBuffer.Bytes(), hostsInfo, convpath, opFlag, nil
 }
 
 const (
@@ -269,8 +349,8 @@ const (
 )
 
 func builderSingleConf2(collectPath string, indexName string, other string, multiParse int8,
-  secondaryStatus int8, secondary string, parserType int8, secondaryParserType int8, regexValue string,
-  secondaryRegexValue string, rid int32) (string, string) {
+	secondaryStatus int8, secondary string, parserType int8, secondaryParserType int8, regexValue string,
+	secondaryRegexValue string, rid int32) (string, string) {
 	ridstr := "_" + strconv.Itoa(int(rid))
 	inputBlock := ""
 	filterBlock := ""

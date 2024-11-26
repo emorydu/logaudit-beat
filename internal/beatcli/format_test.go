@@ -14,3 +14,7 @@ func TestFormat(t *testing.T) {
 	v := float64(m) / 1024.0 / 1024.0
 	fmt.Println(v)
 }
+
+func TestCNMD(t *testing.T) {
+
+}

@@ -20,6 +20,8 @@ type Repository interface {
 	QueryMonitorTimestamp(ctx context.Context) (map[string]int64, error)
 	UpdateStatus(ctx context.Context, ip string, status int) error
 	QueryCollectConfig(ctx context.Context, ip string) (model.CollectInfo, error)
+	QueryKafkaDomain(ctx context.Context) (string, error)
+	QueryIp(ctx context.Context) (string, error)
 }
 
 type repository struct {
@@ -30,6 +32,29 @@ func NewRepository(orm driver.Conn) Repository {
 	return &repository{
 		db: orm,
 	}
+}
+
+func (r *repository) QueryIp(ctx context.Context) (string, error) {
+	q := `SELECT ip FROM net_config WHERE type = 0;`
+	row := r.db.QueryRow(ctx, q)
+	var ip string
+	err := row.Scan(&ip)
+	if err != nil {
+		return "", err
+	}
+	return ip, nil
+}
+
+func (r *repository) QueryKafkaDomain(ctx context.Context) (string, error) {
+	q := `SELECT param_value FROM param_config WHERE param_id = 2001;`
+	row := r.db.QueryRow(ctx, q)
+	var domain string
+	err := row.Scan(&domain)
+	if err != nil {
+		return "", err
+	}
+
+	return domain, nil
 }
 
 func (r *repository) QueryCollectConfig(ctx context.Context, ip string) (model.CollectInfo, error) {
@@ -116,26 +141,27 @@ func (r *repository) InsertOrUpdateMonitor(ctx context.Context, ip string, cpuUs
 func (r *repository) FetchConfInfo(ctx context.Context, ip string) ([]model.ConfigInfo, error) {
 	items := make([]model.ConfigInfo, 0)
 	rows, err := r.db.Query(ctx, `
-SELECT ccr.srcIp,
-       ccf.mapStatus,
-       ccf.mapIp,
-       ccf.kafkaPort,
-       ccr.agentPath,
-       pr.mutiParse,
-       pr.param1 AS regexValue,
-       pr.check,
-       pr.parseType,
-       pr.indexName,
-       pr.secondary,
-       pr.secondaryState,
-       pr.parseType2,
-       pr.param1_2,
-       pr.rid,
-       ccr.encoding
-FROM collect_conf AS ccf
-         RIGHT JOIN collect_conf_relation AS ccr ON ccf.srcIp = ccr.srcIp
-         LEFT JOIN parsing_rule AS pr ON ccr.rid = pr.rid 
-WHERE ccr.agentPath != '' AND ccr.srcIp = ?;
+SELECT
+ccf.srcIp,
+ccf.mapStatus,
+ccf.mapIp,
+ccf.kafkaPort,
+ccr.agentPath,
+pr.mutiParse,
+pr.param1 AS regexValue,
+pr.check,
+pr.parseType,
+pr.indexName,
+pr.secondary,
+pr.secondaryState,
+pr.parseType2,
+pr.param1_2,
+pr.rid,
+ccr.encoding
+FROM collect_conf_relation AS ccr
+RIGHT JOIN collect_conf AS ccf ON ccf.cid = ccr.cid
+LEFT JOIN parsing_rule AS pr ON ccr.rid = pr.rid
+WHERE ccr.agentPath != '';
 `, ip)
 	if err != nil {
 		return nil, err
