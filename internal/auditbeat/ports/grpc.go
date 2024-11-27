@@ -33,13 +33,14 @@ func (s GrpcServer) FetchBeatRule(ctx context.Context, req *auditbeat.FetchBeatR
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error query monitor info failed: %v", err)
 	}
-	hostsInfos := make([]string, 0, len(hostsInfo))
+	hostsInfos := make([]string, len(hostsInfo))
 	if opFlag && req.Os != "windows" {
 		hostsInfos = append(hostsInfos, "cnm")
 	}
 	for k := range hostsInfo {
 		hostsInfos = append(hostsInfos, k)
 	}
+
 	return &auditbeat.FetchBeatRuleResponse{
 		Operator:  int32(operator),
 		Data:      info,

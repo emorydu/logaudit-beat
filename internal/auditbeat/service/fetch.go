@@ -189,11 +189,11 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 		for _, vv := range vals {
 			if strings.Contains(vv, "-") {
 				ranges := strings.Split(vv, "-")
-				start := strings.Split(ranges[0], ",")
-				stop := strings.Split(ranges[1], ",")
+				start := strings.Split(ranges[0], ".")
+				stop := strings.Split(ranges[1], ".")
 				startBigEndianOrder := fmt.Sprintf("%v.%v.%v.%v", start[3], start[2], start[1], start[0])
 				stopBigEndianOrder := fmt.Sprintf("%v.%v.%v.%v", stop[3], stop[2], stop[1], stop[0])
-				inIP := strings.Split(ip, ",")
+				inIP := strings.Split(ip, ".")
 				inIPBigEndianOrder := fmt.Sprintf("%v.%v.%v.%v", inIP[3], inIP[2], inIP[1], inIP[0])
 				if inIPBigEndianOrder >= startBigEndianOrder && inIPBigEndianOrder <= stopBigEndianOrder {
 					realInfo = append(realInfo, model.ConfigInfo{
@@ -245,6 +245,7 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
 	}
 
 	opFlag := false
+	parserRd := map[string]struct{}{}
 	for _, v := range realInfo {
 		if v.Check == stopped {
 			continue
@@ -312,14 +313,22 @@ func (f *fetchService) QueryConfigInfo(ctx context.Context, ip, os string) ([]by
     Name json
     Format json
 `), "")
-			parserBuffer.Write([]byte(ss))
+			parserRd[ss] = struct{}{}
+			//parserBuffer.Write([]byte(ss))
 		} else {
-			parserBuffer.Write([]byte(parsersConf))
+			//parserBuffer.Write([]byte(parsersConf))
+			parserRd[parsersConf] = struct{}{}
 		}
 
 	}
 
-	parserBuffer.Write([]byte(tmpJsonParser))
+	parserRd[tmpJsonParser] = struct{}{}
+
+	for parser := range parserRd {
+		parserBuffer.Write([]byte(parser))
+	}
+
+	//parserBuffer.Write([]byte(tmpJsonParser))
 
 	if os == "windows" {
 		broker := validateBroker(model.ReallyBroker{

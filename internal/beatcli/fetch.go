@@ -67,6 +67,9 @@ func (s service) FetchConfigAndOp() {
 	ws := false
 	hostsInfos := resp.GetHostInfos()
 	for _, hostInfo := range hostsInfos {
+		if strings.TrimSpace(hostInfo) == ""{
+			continue
+		}
 		if hostInfo == "cnm" {
 			ws = true
 			continue
