@@ -13,6 +13,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -33,12 +34,16 @@ func (s GrpcServer) FetchBeatRule(ctx context.Context, req *auditbeat.FetchBeatR
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error query monitor info failed: %v", err)
 	}
-	hostsInfos := make([]string, len(hostsInfo))
+	//hostsInfos := make([]string, 0)
+	var hostsInfos []string
 	if opFlag && req.Os != "windows" {
 		hostsInfos = append(hostsInfos, "cnm")
 	}
 	for k := range hostsInfo {
-		hostsInfos = append(hostsInfos, k)
+		if strings.TrimSpace(k) == "" {
+			continue
+		}
+		hostsInfos = append(hostsInfos, strings.TrimSpace(k))
 	}
 
 	return &auditbeat.FetchBeatRuleResponse{
