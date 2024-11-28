@@ -1,6 +1,8 @@
 module github.com/emorydu/dbaudit/internal/common
 
-go 1.19
+go 1.22
+
+toolchain go1.23.2
 
 require (
 	github.com/axgle/mahonia v0.0.0-20180208002826-3358181d7394

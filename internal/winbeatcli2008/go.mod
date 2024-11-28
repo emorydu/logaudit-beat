@@ -1,6 +1,8 @@
 module github.com/emorydu/dbaudit/internal/beatcli
 
-go 1.19
+go 1.22
+
+toolchain go1.23.2
 
 replace github.com/emorydu/dbaudit/internal/common => ../common2008/
 

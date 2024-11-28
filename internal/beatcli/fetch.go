@@ -9,15 +9,16 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+
 	"github.com/emorydu/dbaudit/internal/common"
 	"github.com/emorydu/dbaudit/internal/common/client"
 	"github.com/emorydu/dbaudit/internal/common/conv"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/emorydu/dbaudit/internal/common/utils"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
 )
 
 type Fetch struct {
@@ -54,6 +55,14 @@ func (s service) FetchConfigAndOp() {
 		if strings.Contains(err.Error(), "connect: connection refused") {
 			RunKillApp(pid)
 		}
+		if strings.Contains(err.Error(), "not configuration") {
+			pid, err = RunShellReturnPid(fluentBit)
+			if err != nil {
+				s.log.Errorf("query fluent-bit pid error: %v", err)
+			}
+			RunKillApp(pid)
+			return
+		}
 		s.log.Errorf("fetch beat rule error: %v", err)
 		return
 	}
@@ -67,7 +76,7 @@ func (s service) FetchConfigAndOp() {
 	ws := false
 	hostsInfos := resp.GetHostInfos()
 	for _, hostInfo := range hostsInfos {
-		if strings.TrimSpace(hostInfo) == ""{
+		if strings.TrimSpace(hostInfo) == "" {
 			continue
 		}
 		if hostInfo == "cnm" {

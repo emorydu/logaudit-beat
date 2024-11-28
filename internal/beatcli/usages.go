@@ -6,11 +6,12 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/emorydu/dbaudit/internal/common"
 	"github.com/emorydu/dbaudit/internal/common/client"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/emorydu/dbaudit/internal/common/gops"
-	"strconv"
 )
 
 func (s service) UsageStatus() {

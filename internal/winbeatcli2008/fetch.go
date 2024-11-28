@@ -10,17 +10,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strings"
+
 	"github.com/emorydu/dbaudit/internal/beatcli/systemutil"
 	"github.com/emorydu/dbaudit/internal/common"
 	"github.com/emorydu/dbaudit/internal/common/client"
 	"github.com/emorydu/dbaudit/internal/common/conv"
 	"github.com/emorydu/dbaudit/internal/common/genproto/auditbeat"
 	"github.com/emorydu/dbaudit/internal/common/utils"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"runtime"
-	"strings"
 )
 
 const fluentBit = "fluent-bit.exe"
@@ -57,6 +58,22 @@ func (s service) FetchConfigAndOp() {
 		Os: runtime.GOOS,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "connect: connection refused") {
+			err = systemutil.Kill(fluentBit)
+			if err != nil {
+				s.log.Error("failed to kill fluent-bit process")
+				return
+			}
+		}
+		if strings.Contains(err.Error(), "not configuration") {
+			if exist {
+				err = systemutil.Kill(fluentBit)
+				if err != nil {
+					s.log.Error("failed to kill fluent-bit process")
+					return
+				}
+			}
+		}
 		s.log.Errorf("fetch beat rule error: %v", err)
 		if exist {
 			err = systemutil.Kill(fluentBit)
